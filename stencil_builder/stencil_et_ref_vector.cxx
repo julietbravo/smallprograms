@@ -27,7 +27,7 @@ int main()
   for (int ii=0; ii<iter; ++ii)
     c += grad<0>( interp<1>(a, 1) * interp<1>(b, 1), 1);
 
-  std::cout << std::setprecision(8) << "c = " << c_data[3] << std::endl;
+  std::cout << std::setprecision(8) << "c = " << c_data[n-4] << std::endl;
 
   return 0;
 }

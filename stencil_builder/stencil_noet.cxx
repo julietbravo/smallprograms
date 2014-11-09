@@ -40,7 +40,7 @@ int main()
     for (int i=3; i<n-3; ++i)
       c_data[i] += grad_interp_val(&a_data[i], &b_data[i]);
 
-  std::cout << std::setprecision(8) << "c = " << c_data[3] << std::endl;
+  std::cout << std::setprecision(8) << "c = " << c_data[n-4] << std::endl;
 
   return 0;
 }
