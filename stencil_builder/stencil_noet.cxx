@@ -36,12 +36,9 @@ int main()
     c_data[i] = 0.;
   }
 
-  double e = 0.;
-
   for (int ii=0; ii<iter; ++ii)
     for (int i=3; i<n-3; ++i)
       c_data[i] += grad_interp_val(&a_data[i], &b_data[i]);
-
 
   std::cout << std::setprecision(8) << "c = " << c_data[3] << std::endl;
 
