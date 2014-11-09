@@ -96,8 +96,6 @@ namespace StencilBuilder
 
     template<class T> void operator= (T expression) { (&data_)[0] =  expression[0]; }
     template<class T> void operator+=(T expression) { (&data_)[0] += expression[0]; }
-    template<class T> void operator-=(T expression) { (&data_)[0] -= expression[0]; }
-    template<class T> void operator*=(T expression) { (&data_)[0] *= expression[0]; }
 
     double &data_;
   };

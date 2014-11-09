@@ -76,13 +76,13 @@ namespace StencilBuilder
 
   // Template classes for the operators
   template<class Left, class Right>
-  Operator<Left, Multiply, Right> operator*(const Left &left, const Right &right)
+  Operator<Left, Multiply, Right> operator*(const Left left, const Right right)
   {
     return Operator<Left, Multiply, Right>(left, right);
   }
 
   template<class Left, class Right>
-  Operator<Left, Add, Right> operator+(const Left &left, const Right &right)
+  Operator<Left, Add, Right> operator+(const Left left, const Right right)
   {
     return Operator<Left, Add, Right>(left, right);
   }
@@ -96,8 +96,6 @@ namespace StencilBuilder
 
     template<class T> void operator= (T expression) { data_[0] =  expression[0]; }
     template<class T> void operator+=(T expression) { data_[0] += expression[0]; }
-    template<class T> void operator-=(T expression) { data_[0] -= expression[0]; }
-    template<class T> void operator*=(T expression) { data_[0] *= expression[0]; }
 
     double *data_;
   };
