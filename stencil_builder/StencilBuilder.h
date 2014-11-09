@@ -90,7 +90,8 @@ namespace StencilBuilder
   // Scalar class representing the scalar, whose operations expand compile time
   struct Scalar
   {
-    Scalar(double &data) : data_(data) {}
+    Scalar(double &data)
+      : data_(data) {}
 
     double operator[](const int i) const { return (&data_)[i]; }
 
@@ -98,5 +99,27 @@ namespace StencilBuilder
     template<class T> void operator+=(T expression) { (&data_)[0] += expression[0]; }
 
     double &data_;
+  };
+
+  struct Slice
+  {
+    Slice(double &data, const int itot, const int jtot) 
+      : data_(data), itot_(itot), jtot_(jtot) {}
+
+    double operator[](const int i) const { return (&data_)[i]; }
+
+    template<class T> void operator+=(T expression)
+    {
+      for (int j=0; j<jtot_; ++j)
+        for (int i=0; i<itot_; ++i)
+        {
+          int ij = i+3 + (j+3)*(itot_+6);
+          (&data_)[ij] += expression[ij];
+        }
+    }
+
+    double &data_;
+    const int itot_;
+    const int jtot_;
   };
 }
