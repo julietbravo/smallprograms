@@ -1,6 +1,3 @@
-#include <typeinfo>
-#define restrict __restrict__
-
 namespace StencilBuilder
 {
   // Stencil operators
@@ -29,13 +26,8 @@ namespace StencilBuilder
     Inner inner_;
     const int nn_;
 
-    double operator[](const int i)
+    double operator[](const int i) const
     {
-      // std::cout << typeid(Inner).name() << ", " << typeid(Op).name() << ": " 
-      //           << (i-2+toCenter) << ", " 
-      //           << (i-1+toCenter) << ", " 
-      //           << (i  +toCenter) << ", " 
-      //           << (i+1+toCenter) << std::endl;
       const double sm2 = Op::apply_m2(inner_[i + (-2+toCenter)*nn_]);
       const double sm1 = Op::apply_m1(inner_[i + (-1+toCenter)*nn_]);
       const double sp1 = Op::apply_p1(inner_[i + (   toCenter)*nn_]);
@@ -43,7 +35,7 @@ namespace StencilBuilder
       return sm2 + sm1 + sp1 + sp2;
     }
 
-    double eval() { return operator[](0); }
+    double eval() const { return operator[](0); }
   };
 
   // Template classes for the stencil operators
@@ -76,10 +68,10 @@ namespace StencilBuilder
   {
     Operator(const Left &left, const Right &right) : left_(left), right_(right) {}
 
-    Left left_;
-    Right right_;
+    const Left &left_;
+    const Right &right_;
 
-    double operator[](const int i) { return Op::apply(left_[i], right_[i]); }
+    double operator[](const int i) const { return Op::apply(left_[i], right_[i]); }
   };
 
   // Template classes for the operators
@@ -100,7 +92,7 @@ namespace StencilBuilder
   {
     Scalar(double &data) : data_(data) {}
 
-    double operator[](const int i) { return (&data_)[i]; }
+    double operator[](const int i) const { return (&data_)[i]; }
 
     template<class T> void operator= (T expression) { (&data_)[0] =  expression[0]; }
     template<class T> void operator+=(T expression) { (&data_)[0] += expression[0]; }
