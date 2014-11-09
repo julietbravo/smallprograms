@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <cstdlib>
 
 // This template describes the array that contains the data and the operators
 struct Array
@@ -40,21 +41,42 @@ Array operator+(const Array &a, const Array &b)
   return c;
 }
 
+void tripleAddition(double * const  __restrict__ d, const double * const __restrict__ a,
+                    const double * const  __restrict__ b, const double * const __restrict__ c,
+                    const int n)
+{
+  for (int i=0; i<n; ++i)
+    d[i] += a[i] + b[i] + c[i];
+}
+
 int main()
 {
-  double a_data[] = { 0.1, 0.2, 0.3, 0.4 };
-  double b_data[] = { 0.2, 0.3, 0.4, 0.5 };
-  double c_data[] = { 0.3, 0.4, 0.5, 0.6 };
+  const int n    = 1024*1024;
+  const int iter = 1024;
 
-  double d_data[4];
+  double *a_data = new double[n];
+  double *b_data = new double[n];
+  double *c_data = new double[n];
+  double *d_data = new double[n];
 
-  Array A(a_data, 4);
-  Array B(b_data, 4);
-  Array C(c_data, 4);
+  for (int i=0; i<n; ++i)
+  {
+    a_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
+    b_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
+    c_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
+    d_data[i] = 0.;
+  }
 
-  Array D(d_data, 4);
+  Array A(a_data, n);
+  Array B(b_data, n);
+  Array C(c_data, n);
+  Array D(d_data, n);
 
-  D = A + B + C;
+  // for (int i=0; i<iter; ++i)
+  //   D += A + B + C;
+
+  for (int i=0; i<iter; ++i)
+    tripleAddition(d_data, a_data, b_data, c_data, n);
 
   for (int i=0; i<4; ++i)
     std::cout << std::setw(3) << i    << ": "

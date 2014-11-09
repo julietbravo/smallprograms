@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <cstdlib>
 
 // This is a class for the add operator
 struct add
@@ -25,10 +26,10 @@ struct Array
   Array(double *data, const int n) : data_(data), n_(n) {}
 
   template<class Left, class Op, class Right>
-  void operator=(X<Left, Op, Right> expression)
+  void operator+=(X<Left, Op, Right> expression)
   {
     for (int i=0; i<n_; ++i)
-      data_[i] = expression[i];
+      data_[i] += expression[i];
   }
 
   double operator[](const int i) { return data_[i]; }
@@ -45,35 +46,37 @@ X<Left, add, Right> operator+(const Left a, const Right b)
 
 int main()
 {
-  double a_data[] = { 0.1, 0.2, 0.3, 0.4 };
-  double b_data[] = { 0.2, 0.3, 0.4, 0.5 };
-  double c_data[] = { 0.3, 0.4, 0.5, 0.6 };
+  const int n    = 1024*1024;
+  const int iter = 1024;
 
-  double d1_data[4];
-  double d2_data[4];
-  double d3_data[4];
-  double d4_data[4];
+  double *a_data = new double[n];
+  double *b_data = new double[n];
+  double *c_data = new double[n];
+  double *d_data = new double[n];
 
-  Array A(a_data, 4);
-  Array B(b_data, 4);
-  Array C(c_data, 4);
+  for (int i=0; i<n; ++i)
+  {
+    a_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
+    b_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
+    c_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
+    d_data[i] = 0.;
+  }
 
-  Array D1(d1_data, 4);
-  Array D2(d2_data, 4);
-  Array D3(d3_data, 4);
-  Array D4(d4_data, 4);
+  Array A(a_data, n);
+  Array B(b_data, n);
+  Array C(c_data, n);
+  Array D(d_data, n);
 
-  D1 = A + B + C;
-  D2 = X<Array, add, Array>(B, C) + A;
-  D3 = X< X<Array, add, Array>, add, Array>( X<Array, add, Array>(B, C), A);
-  D4.operator=(X< X<Array, add, Array>, add, Array>( X<Array, add, Array>(B, C), A));
+  for (int i=0; i<iter; ++i)
+    D += A + B + C;
+
+  // D += X<Array, add, Array>(B, C) + A;
+  // D += X< X<Array, add, Array>, add, Array>( X<Array, add, Array>(B, C), A);
+  // D.operator+=(X< X<Array, add, Array>, add, Array>( X<Array, add, Array>(B, C), A));
 
   for (int i=0; i<4; ++i)
-    std::cout << std::setw(3) << i     << ": "
-              << std::setw(3) << D1[i] << ", "
-              << std::setw(3) << D2[i] << ", "
-              << std::setw(3) << D3[i] << ", "
-              << std::setw(3) << D4[i] << std::endl;
+    std::cout << std::setw(3) << i    << ": "
+              << std::setw(3) << D[i] << std::endl;
 
   return 0;
 }
