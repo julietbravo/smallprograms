@@ -34,12 +34,11 @@ double grad_interp_val(const double * const a, const double * const b)
 int main()
 {
   const int n    = 1024*1024;
-  const int iter = 100;
+  const int iter = 256;
 
   double *a_data = new double[n];
   double *b_data = new double[n];
   double *c_data = new double[n];
-  double *d_data = new double[n];
 
   for (int i=0; i<n; ++i)
   {
