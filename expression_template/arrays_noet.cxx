@@ -40,18 +40,6 @@ Array operator+(const Array &a, const Array &b)
   return c;
 }
 
-Array operator*(const Array &a, const Array &b)
-{
-  double *data = new double[a.n_];
-  Array c(data, a.n_);
-
-  for (int i=0; i<c.n_; ++i)
-    c.data_[i] = a.data_[i] * b.data_[i];
-
-  return c;
-}
-
-
 int main()
 {
   double a_data[] = { 0.1, 0.2, 0.3, 0.4 };
@@ -66,7 +54,7 @@ int main()
 
   Array D(d_data, 4);
 
-  D = A + B * C;
+  D = A + B + C;
 
   for (int i=0; i<4; ++i)
     std::cout << std::setw(3) << i    << ": "

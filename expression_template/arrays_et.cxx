@@ -10,14 +10,6 @@ struct add
   }
 };
 
-struct multiply 
-{
-  static double apply(const double a, const double b)
-  {
-    return a*b;
-  }
-};
-
 // This is the template that parses the expression tree
 template<class Left, class Op, class Right>
 struct X
@@ -60,12 +52,6 @@ X<Left, add, Right> operator+(const Left a, const Right b)
   return X<Left, add, Right>(a, b);
 }
 
-template<class Left, class Right>
-X<Left, multiply, Right> operator*(const Left a, const Right b)
-{
-  return X<Left, multiply, Right>(a, b);
-}
-
 int main()
 {
   double a_data[] = { 0.1, 0.2, 0.3, 0.4 };
@@ -86,10 +72,10 @@ int main()
   Array D3(d3_data, 4);
   Array D4(d4_data, 4);
 
-  D1 = A + B * C;
-  D2 = X<Array, multiply, Array>(B, C) + A;
-  D3 = X< X<Array, multiply, Array>, add, Array>( X<Array, multiply, Array>(B, C), A);
-  D4.operator=(X< X<Array, multiply, Array>, add, Array>( X<Array, multiply, Array>(B, C), A));
+  D1 = A + B + C;
+  D2 = X<Array, add, Array>(B, C) + A;
+  D3 = X< X<Array, add, Array>, add, Array>( X<Array, add, Array>(B, C), A);
+  D4.operator=(X< X<Array, add, Array>, add, Array>( X<Array, add, Array>(B, C), A));
 
   for (int i=0; i<4; ++i)
     std::cout << std::setw(3) << i     << ": "
