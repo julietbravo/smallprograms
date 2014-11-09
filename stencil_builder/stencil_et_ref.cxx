@@ -1,7 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
-#include "StencilBuilder.h"
+#include "StencilBuilder_ref.h"
 
 using namespace StencilBuilder;
 

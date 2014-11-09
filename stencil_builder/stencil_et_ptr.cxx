@@ -1,7 +1,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
-#include "StencilBuilder_ref.h"
+#include "StencilBuilder_ptr.h"
 
 using namespace StencilBuilder;
 
@@ -31,46 +31,34 @@ double grad_interp_val(const double * const a, const double * const b)
                    interp_val( a[ 0], a[ 1], a[ 2], a[3] ) * interp_val( b[ 0], b[ 1], b[ 2], b[3] )); 
 }
 
-
 int main()
 {
+  const int n    = 1024*1024;
+  const int iter = 256;
 
-  double a_data[7], b_data[7], c_data[7], d_data[7];
+  double *a_data = new double[n];
+  double *b_data = new double[n];
+  double *c_data = new double[n];
 
-  for(int i=0; i<7; ++i)
+  for (int i=0; i<n; ++i)
   {
-    a_data[i] = 0.01 * static_cast<double>(std::rand() % 100);
-    b_data[i] = 0.01 * static_cast<double>(std::rand() % 100);
+    a_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
+    b_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
     c_data[i] = 0.;
-    d_data[i] = 0.;
   }
-
-  Scalar a(a_data[3]);
-  Scalar b(b_data[3]);
-  Scalar c(c_data[3]);
-  Scalar d(d_data[3]);
 
   double e = 0.;
 
-  c += grad<0>( interp<1>(a, 1) * interp<1>(a, 1), 1);
-  d += grad<0>( interp<1>(a, 1) * interp<1>(b, 1), 1);
-  e += grad<0>( interp<1>(a, 1) * interp<1>(b, 1), 1).eval() * 2.;
+  for (int ii=0; ii<iter; ++ii)
+    for (int i=3; i<n-3; ++i)
+    {
+      Scalar a(&a_data[i]);
+      Scalar b(&b_data[i]);
+      Scalar c(&c_data[i]);
+      c += grad<0>( interp<1>(a, 1) * interp<1>(b, 1), 1);
+    }
 
-  double c_ref = grad_interp_val(&a_data[3]);
-  double d_ref = grad_interp_val(&a_data[3], &b_data[3]);
-  double e_ref = 2.*d_ref;
-
-  std::cout << std::setprecision(8) << "c = " << c_data[3] << ", c_ref = " << c_ref << std::endl;
-  std::cout << std::setprecision(8) << "d = " << d_data[3] << ", d_ref = " << d_ref << std::endl;
-  std::cout << std::setprecision(8) << "e = " << e         << ", e_ref = " << e_ref << std::endl;
-
-  // std::cout << "Validation:" << std::endl;
-  // for(int i=0; i<7; ++i)
-  //   std::cout << i << ": "
-  //             << std::setw(5) << a_data[i] << ", "
-  //             << std::setw(5) << b_data[i] << ", "
-  //             << std::setw(5) << c_data[i] << ", "
-  //             << std::setw(5) << d_data[i] << std::endl;
+  std::cout << std::setprecision(8) << "c = " << c_data[3] << std::endl;
 
   return 0;
 }
