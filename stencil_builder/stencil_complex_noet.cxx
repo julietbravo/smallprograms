@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include "StencilBuilder.h"
 
-
 double interp_val(const double m2, const double m1, const double p1, const double p2)
 {
   return (-1./16)*m2 + (9./16)*m1 + (9./16)*p1 + (-1./16)*p2;
@@ -33,10 +32,10 @@ void grad_interp_val(double * const __restrict__ c, const double * const __restr
                          interp_val( a[ij-ii1], a[ij    ], a[ij+ii1], a[ij+ii2] ) * interp_val( b[ij-jj1], b[ij    ], b[ij+jj1], b[ij+jj2] ) + interp_val( c[ij-ii1], c[ij    ], c[ij+ii1], c[ij+ii2] ),
                          interp_val( a[ij    ], a[ij+ii1], a[ij+ii2], a[ij+ii3] ) * interp_val( b[ij    ], b[ij+jj1], b[ij+jj2], b[ij+jj3] ) + interp_val( c[ij    ], c[ij+ii1], c[ij+ii2], c[ij+ii3] ))
 
-             + grad_val( interp_val( a[ij-jj3], a[ij-jj2], a[ij-jj1], a[ij    ] ) * interp_val( b[ij-ii3], b[ij-ii2], b[ij-ii1], b[ij    ] ) + interp_val( c[ij-jj3], c[ij-jj2], c[ij-jj1], c[ij    ] ),
-                         interp_val( a[ij-jj2], a[ij-jj1], a[ij    ], a[ij+jj1] ) * interp_val( b[ij-ii2], b[ij-ii1], b[ij    ], b[ij+ii1] ) + interp_val( c[ij-jj2], c[ij-jj1], c[ij    ], c[ij+jj1] ),
-                         interp_val( a[ij-jj1], a[ij    ], a[ij+jj1], a[ij+jj2] ) * interp_val( b[ij-ii1], b[ij    ], b[ij+ii1], b[ij+ii2] ) + interp_val( c[ij-jj1], c[ij    ], c[ij+jj1], c[ij+jj2] ),
-                         interp_val( a[ij    ], a[ij+jj1], a[ij+jj2], a[ij+jj3] ) * interp_val( b[ij    ], b[ij+ii1], b[ij+ii2], b[ij+ii3] ) + interp_val( c[ij    ], c[ij+jj1], c[ij+jj2], c[ij+jj3] ));
+             + grad_val( interp_val( a[ij-jj3], a[ij-jj2], a[ij-jj1], a[ij    ] ) * interp_val( b[ij-ii3], b[ij-ii2], b[ij-ii1], b[ij    ] ) + interp_val( c[ij-ii3], c[ij-ii2], c[ij-ii1], c[ij    ] ),
+                         interp_val( a[ij-jj2], a[ij-jj1], a[ij    ], a[ij+jj1] ) * interp_val( b[ij-ii2], b[ij-ii1], b[ij    ], b[ij+ii1] ) + interp_val( c[ij-ii2], c[ij-ii1], c[ij    ], c[ij+ii1] ),
+                         interp_val( a[ij-jj1], a[ij    ], a[ij+jj1], a[ij+jj2] ) * interp_val( b[ij-ii1], b[ij    ], b[ij+ii1], b[ij+ii2] ) + interp_val( c[ij-ii1], c[ij    ], c[ij+ii1], c[ij+ii2] ),
+                         interp_val( a[ij    ], a[ij+jj1], a[ij+jj2], a[ij+jj3] ) * interp_val( b[ij    ], b[ij+ii1], b[ij+ii2], b[ij+ii3] ) + interp_val( c[ij    ], c[ij+ii1], c[ij+ii2], c[ij+ii3] ));
     }
 }
 
