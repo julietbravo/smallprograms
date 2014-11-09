@@ -13,10 +13,10 @@ struct X
 {
   X(const Left &a, const Right &b) : a_(a), b_(b) {}
 
-  Left a_;
-  Right b_;
+  const Left &a_;
+  const Right &b_;
 
-  double operator[](const int i) { return Op::apply(a_[i], b_[i]); }
+  double operator[](const int i) const { return Op::apply(a_[i], b_[i]); }
 };
 
 // This template describes the array that contains the data and the operators
@@ -31,7 +31,7 @@ struct Array
       (&data_)[i] = expression[i];
   }
 
-  double operator[](const int i) { return (&data_)[i]; }
+  double operator[](const int i) const { return (&data_)[i]; }
 
   double &data_;
   const int n_;
