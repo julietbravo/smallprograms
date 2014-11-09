@@ -12,12 +12,14 @@ double grad_val(const double m2, const double m1, const double p1, const double 
   return (1./24.)*m2 + (-27./24.)*m1 + (27./24.)*p1 + (-1./24.)*p2;
 }
 
-double grad_interp_val(const double * const a, const double * const b)
+void grad_interp_val(double * const __restrict__ c, const double * const __restrict__ a,
+                     const double * const __restrict__ b, const int n)
 {
-  return grad_val( interp_val( a[-3], a[-2], a[-1], a[0] ) * interp_val( b[-3], b[-2], b[-1], b[0] ), 
-                   interp_val( a[-2], a[-1], a[ 0], a[1] ) * interp_val( b[-2], b[-1], b[ 0], b[1] ), 
-                   interp_val( a[-1], a[ 0], a[ 1], a[2] ) * interp_val( b[-1], b[ 0], b[ 1], b[2] ), 
-                   interp_val( a[ 0], a[ 1], a[ 2], a[3] ) * interp_val( b[ 0], b[ 1], b[ 2], b[3] )); 
+  for (int i=3; i<n-3; ++i)
+    c[i] += grad_val( interp_val( a[i-3], a[i-2], a[i-1], a[i  ] ) * interp_val( b[i-3], b[i-2], b[i-1], b[i  ] ),
+                      interp_val( a[i-2], a[i-1], a[i  ], a[i+1] ) * interp_val( b[i-2], b[i-1], b[i  ], b[i+1] ),
+                      interp_val( a[i-1], a[i  ], a[i+1], a[i+2] ) * interp_val( b[i-1], b[i  ], b[i+1], b[i+2] ),
+                      interp_val( a[i  ], a[i+1], a[i+2], a[i+3] ) * interp_val( b[i  ], b[i+1], b[i+2], b[i+3] ));
 }
 
 int main()
@@ -37,8 +39,7 @@ int main()
   }
 
   for (int ii=0; ii<iter; ++ii)
-    for (int i=3; i<n-3; ++i)
-      c_data[i] += grad_interp_val(&a_data[i], &b_data[i]);
+    grad_interp_val(c_data, a_data, b_data, n);
 
   std::cout << std::setprecision(8) << "c = " << c_data[n-4] << std::endl;
 
