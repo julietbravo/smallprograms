@@ -99,4 +99,27 @@ namespace StencilBuilder
 
     double *data_;
   };
+
+  // Vector class representing the vector, whose operations expand compile time
+  struct Vector
+  {
+    Vector(double *data, const int n) : data_(data), n_(n) {}
+
+    double operator[](const int i) const { return data_[i]; }
+
+    template<class T> void operator= (T expression)
+    {
+      for (int i=3; i<n_-3; ++i)
+        data_[i] = expression[i];
+    }
+
+    template<class T> void operator+=(T expression)
+    {
+      for (int i=3; i<n_-3; ++i)
+        data_[i] += expression[i];
+    }
+
+    double *data_;
+    const int n_;
+  };
 }
