@@ -11,7 +11,7 @@ struct add
 template<class Left, class Op, class Right>
 struct X
 {
-  X(Left a, Right b) : a_(a), b_(b) {}
+  X(const Left &a, const Right &b) : a_(a), b_(b) {}
 
   Left a_;
   Right b_;
@@ -22,23 +22,23 @@ struct X
 // This template describes the array that contains the data and the operators
 struct Array
 {
-  Array(double *data, const int n) : data_(data), n_(n) {}
+  Array(double &data, const int n) : data_(data), n_(n) {}
 
   template<class Left, class Op, class Right>
   void operator=(X<Left, Op, Right> expression)
   {
     for (int i=0; i<n_; ++i)
-      data_[i] = expression[i];
+      (&data_)[i] = expression[i];
   }
 
-  double operator[](const int i) { return data_[i]; }
+  double operator[](const int i) { return (&data_)[i]; }
 
-  double *data_;
+  double &data_;
   const int n_;
 };
 
 template<class Left, class Right>
-X<Left, add, Right> operator+(const Left a, const Right b)
+X<Left, add, Right> operator+(const Left &a, const Right &b)
 {
   return X<Left, add, Right>(a, b);
 }
@@ -54,14 +54,14 @@ int main()
   double d3_data[4];
   double d4_data[4];
 
-  Array A(a_data, 4);
-  Array B(b_data, 4);
-  Array C(c_data, 4);
+  Array A(a_data[0], 4);
+  Array B(b_data[0], 4);
+  Array C(c_data[0], 4);
 
-  Array D1(d1_data, 4);
-  Array D2(d2_data, 4);
-  Array D3(d3_data, 4);
-  Array D4(d4_data, 4);
+  Array D1(d1_data[0], 4);
+  Array D2(d2_data[0], 4);
+  Array D3(d3_data[0], 4);
+  Array D4(d4_data[0], 4);
 
   D1 = A + B + C;
   D2 = X<Array, add, Array>(B, C) + A;
