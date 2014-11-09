@@ -16,10 +16,10 @@ void grad_interp_val(double * const __restrict__ c, const double * const __restr
                      const double * const __restrict__ b, const int n)
 {
   for (int i=3; i<n-3; ++i)
-    c[i] += grad_val( interp_val( a[i-3], a[i-2], a[i-1], a[i  ] ) * interp_val( b[i-3], b[i-2], b[i-1], b[i  ] ),
-                      interp_val( a[i-2], a[i-1], a[i  ], a[i+1] ) * interp_val( b[i-2], b[i-1], b[i  ], b[i+1] ),
-                      interp_val( a[i-1], a[i  ], a[i+1], a[i+2] ) * interp_val( b[i-1], b[i  ], b[i+1], b[i+2] ),
-                      interp_val( a[i  ], a[i+1], a[i+2], a[i+3] ) * interp_val( b[i  ], b[i+1], b[i+2], b[i+3] ));
+    c[i] += grad_val( interp_val( a[i-3], a[i-2], a[i-1], a[i  ] ) * interp_val( b[i-3], b[i-2], b[i-1], b[i  ] ) + interp_val( c[i-3], c[i-2], c[i-1], c[i  ] ),
+                      interp_val( a[i-2], a[i-1], a[i  ], a[i+1] ) * interp_val( b[i-2], b[i-1], b[i  ], b[i+1] ) + interp_val( c[i-2], c[i-1], c[i  ], c[i+1] ),
+                      interp_val( a[i-1], a[i  ], a[i+1], a[i+2] ) * interp_val( b[i-1], b[i  ], b[i+1], b[i+2] ) + interp_val( c[i-1], c[i  ], c[i+1], c[i+2] ),
+                      interp_val( a[i  ], a[i+1], a[i+2], a[i+3] ) * interp_val( b[i  ], b[i+1], b[i+2], b[i+3] ) + interp_val( c[i  ], c[i+1], c[i+2], c[i+3] ));
 }
 
 int main()
