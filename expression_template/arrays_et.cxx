@@ -4,10 +4,7 @@
 // This is a class for the add operator
 struct add
 {
-  static double apply(const double a, const double b)
-  {
-    return a+b;
-  }
+  static double apply(const double a, const double b) { return a+b; }
 };
 
 // This is the template that parses the expression tree
@@ -19,10 +16,7 @@ struct X
   Left a_;
   Right b_;
 
-  double operator[](const int i)
-  {
-    return Op::apply(a_[i], b_[i]);
-  }
+  double operator[](const int i) { return Op::apply(a_[i], b_[i]); }
 };
 
 // This template describes the array that contains the data and the operators
@@ -37,10 +31,7 @@ struct Array
       data_[i] = expression[i];
   }
 
-  double operator[](const int i)
-  {
-    return data_[i];
-  }
+  double operator[](const int i) { return data_[i]; }
 
   double *data_;
   const int n_;
