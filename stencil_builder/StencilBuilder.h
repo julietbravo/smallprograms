@@ -23,7 +23,7 @@ namespace StencilBuilder
   {
     Stencil(const Inner &inner, const int nn) : inner_(inner), nn_(nn) {}
 
-    Inner inner_;
+    const Inner &inner_;
     const int nn_;
 
     double operator[](const int i) const
