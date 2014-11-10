@@ -109,13 +109,13 @@ namespace StencilBuilder
 
     template<class T> void operator= (T expression)
     {
-      for (int i=3; i<n_-3; ++i)
+      for (int i=4; i<n_-4; ++i)
         data_[i] = expression[i];
     }
 
     template<class T> void operator+=(T expression)
     {
-      for (int i=3; i<n_-3; ++i)
+      for (int i=4; i<n_-4; ++i)
         data_[i] += expression[i];
     }
 

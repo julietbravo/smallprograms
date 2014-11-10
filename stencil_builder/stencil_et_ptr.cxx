@@ -27,10 +27,10 @@ int main()
       Scalar a(&a_data[i]);
       Scalar b(&b_data[i]);
       Scalar c(&c_data[i]);
-      c += grad<0>( interp<1>(a, 1) * interp<1>(b, 1) + interp<1>(c, 1), 1);
+      c += grad<0>( interp<1>(a, 1) * interp<1>(b, 1) + interp<1>(a, 1), 1);
     }
 
-  std::cout << std::setprecision(8) << "c = " << c_data[n-4] << std::endl;
+  std::cout << std::setprecision(8) << "c = " << c_data[n-10] << std::endl;
 
   return 0;
 }
