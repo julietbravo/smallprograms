@@ -46,7 +46,7 @@ int main()
   Field c ( c_data, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
   Field at(at_data, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
 
-  for (int ii=0; ii<iter; ++ii)
+  for (int n=0; n<iter; ++n)
   {
     at = grad<0>( interp<1>(a, ii) * interp<1>(a, ii), ii )
        + grad<1>( interp<0>(b, ii) * interp<0>(a, jj), jj )

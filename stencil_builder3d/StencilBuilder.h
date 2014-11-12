@@ -119,7 +119,6 @@ namespace StencilBuilder
     // Assignment
     template<class T> void operator= (const T &expression)
     {
-      const int ii = 1;
       const int jj = icells_;
       const int kk = ijcells_;
 
@@ -134,7 +133,6 @@ namespace StencilBuilder
 
     template<class T> void operator+=(const T &expression)
     {
-      const int ii = 1;
       const int jj = icells_;
       const int kk = ijcells_;
 
@@ -150,10 +148,10 @@ namespace StencilBuilder
     double *data_;
 
     const int istart_;
-    const int jstart_;
-    const int kstart_;
     const int iend_;
+    const int jstart_;
     const int jend_;
+    const int kstart_;
     const int kend_;
     const int icells_;
     const int ijcells_;
@@ -162,7 +160,6 @@ namespace StencilBuilder
   // Specialization for assignment with a constant
   template<> void Field::operator= (const double &expression)
   {
-    const int ii = 1;
     const int jj = icells_;
     const int kk = ijcells_;
   
