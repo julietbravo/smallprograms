@@ -11,7 +11,7 @@ int main()
   const int jtot = 256;
   const int ktot = 256;
   const int gc   = 4;
-  const int iter = 1;
+  const int iter = 10;
 
   // Calculate the required variables.
   const int ntot = (itot+2*gc)*(jtot+2*gc)*(ktot+2*gc);
@@ -48,9 +48,9 @@ int main()
 
   for (int n=0; n<iter; ++n)
   {
-    at = grad<0>( interp<1>(a, ii) * interp<1>(a, ii), ii )
-       + grad<1>( interp<0>(b, ii) * interp<0>(a, jj), jj )
-       + grad<1>( interp<0>(c, ii) * interp<0>(a, kk), kk );
+    at += grad<0>( interp<1>(a, ii) * interp<1>(a, ii), ii )
+        + grad<1>( interp<0>(b, ii) * interp<0>(a, jj), jj )
+        + grad<1>( interp<0>(c, ii) * interp<0>(a, kk), kk );
 
     a += at;
 
