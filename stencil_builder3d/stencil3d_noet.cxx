@@ -14,9 +14,9 @@ inline double grad(const double m2, const double m1, const double p1, const doub
 
 void advection(double * const __restrict__ at, const double * const __restrict__ a,
                const double * const __restrict__ b, const double * const __restrict__ c,
-               const int istart, const int iend, 
-               const int jstart, const int jend, 
-               const int kstart, const int kend, 
+               const int istart, const int iend,
+               const int jstart, const int jend,
+               const int kstart, const int kend,
                const int icells, const int ijcells)
 {
   const int ii1 = 1;
@@ -31,6 +31,8 @@ void advection(double * const __restrict__ at, const double * const __restrict__
 
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
+      #pragma novector
+      #pragma ivdep
       for (int i=istart; i<iend; ++i)
       {
         const int ijk = i + j*jj1 + k*kk1;
@@ -52,9 +54,9 @@ void advection(double * const __restrict__ at, const double * const __restrict__
 }
 
 void tendency(double * const __restrict__ at, double * const __restrict__ a,
-              const int istart, const int iend, 
-              const int jstart, const int jend, 
-              const int kstart, const int kend, 
+              const int istart, const int iend,
+              const int jstart, const int jend,
+              const int kstart, const int kend,
               const int icells, const int ijcells)
 {
   const int ii = 1;
@@ -63,6 +65,8 @@ void tendency(double * const __restrict__ at, double * const __restrict__ a,
 
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
+      #pragma novector
+      #pragma ivdep
       for (int i=istart; i<iend; ++i)
       {
         const int ijk = i + j*jj + k*kk;
@@ -71,6 +75,8 @@ void tendency(double * const __restrict__ at, double * const __restrict__ a,
 
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
+      #pragma novector
+      #pragma ivdep
       for (int i=istart; i<iend; ++i)
       {
         const int ijk = i + j*jj + k*kk;
@@ -124,7 +130,7 @@ int main()
              kstart, kend,
              icells, ijcells);
   }
- 
+
   const int ijk = itot/2 + (jtot/2)*icells + (ktot/2)*ijcells;
   std::cout << std::setprecision(8) << "a = " << a_data[ijk] << std::endl;
 

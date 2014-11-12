@@ -101,9 +101,9 @@ namespace StencilBuilder
   */
 
   // Field class representing the field, whose operations expand compile time
-  struct Field 
+  struct Field
   {
-    Field(double *data, 
+    Field(double *data,
           const int istart, const int iend,
           const int jstart, const int jend,
           const int kstart, const int kend,
@@ -124,6 +124,7 @@ namespace StencilBuilder
 
       for (int k=kstart_; k<kend_; ++k)
         for (int j=jstart_; j<jend_; ++j)
+          #pragma ivdep
           for (int i=istart_; i<iend_; ++i)
           {
             const int ijk = i + j*jj + k*kk;
@@ -138,6 +139,7 @@ namespace StencilBuilder
 
       for (int k=kstart_; k<kend_; ++k)
         for (int j=jstart_; j<jend_; ++j)
+          #pragma ivdep
           for (int i=istart_; i<iend_; ++i)
           {
             const int ijk = i + j*jj + k*kk;
@@ -162,9 +164,10 @@ namespace StencilBuilder
   {
     const int jj = icells_;
     const int kk = ijcells_;
-  
+
     for (int k=kstart_; k<kend_; ++k)
       for (int j=jstart_; j<jend_; ++j)
+        #pragma ivdep
         for (int i=istart_; i<iend_; ++i)
         {
           const int ijk = i + j*jj + k*kk;
@@ -172,4 +175,3 @@ namespace StencilBuilder
         }
   }
 }
-
