@@ -85,6 +85,7 @@ namespace StencilBuilder
     return Operator<Left, Add, Right>(left, right);
   }
 
+  /*
   // Scalar class representing the scalar, whose operations expand compile time
   struct Scalar
   {
@@ -97,6 +98,7 @@ namespace StencilBuilder
 
     double *data_;
   };
+  */
 
   // Field class representing the field, whose operations expand compile time
   struct Field 
@@ -142,7 +144,7 @@ namespace StencilBuilder
           for (int i=istart_; i<iend_; ++i)
           {
             const int ijk = i + j*jj + k*kk;
-            data_[ijk] = expression[ijk];
+            data_[ijk] += expression[ijk];
           }
     }
 

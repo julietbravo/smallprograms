@@ -11,7 +11,7 @@ int main()
   const int jtot = 256;
   const int ktot = 256;
   const int gc   = 4;
-  const int iter = 16;
+  const int iter = 1;
 
   // Calculate the required variables.
   const int ntot = (itot+2*gc)*(jtot+2*gc)*(ktot+2*gc);

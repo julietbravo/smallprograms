@@ -63,7 +63,6 @@ void tendency(double * const __restrict__ at, double * const __restrict__ a,
 
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
-      #pragma novector
       for (int i=istart; i<iend; ++i)
       {
         const int ijk = i + j*jj + k*kk;
@@ -72,7 +71,6 @@ void tendency(double * const __restrict__ at, double * const __restrict__ a,
 
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
-      #pragma novector
       for (int i=istart; i<iend; ++i)
       {
         const int ijk = i + j*jj + k*kk;
@@ -86,7 +84,7 @@ int main()
   const int jtot = 256;
   const int ktot = 256;
   const int gc   = 4;
-  const int iter = 16;
+  const int iter = 1;
 
   // Calculate the required variables.
   const int ntot = (itot+2*gc)*(jtot+2*gc)*(ktot+2*gc);
