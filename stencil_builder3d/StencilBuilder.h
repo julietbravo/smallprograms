@@ -34,8 +34,6 @@ namespace StencilBuilder
       const double sp2 = Op::apply_p2(inner_[i + (+1+toCenter)*nn_]);
       return sm2 + sm1 + sp1 + sp2;
     }
-
-    double eval() const { return operator[](0); }
   };
 
   // Template classes for the stencil operators
@@ -94,8 +92,8 @@ namespace StencilBuilder
 
     double operator[](const int i) const { return data_[i]; }
 
-    template<class T> void operator= (const T &expression) { data[0] =  expression[0]; }
-    template<class T> void operator+=(const T &expression) { data[0] += expression[0]; }
+    template<class T> void operator= (const T &expression) { data_[0] =  expression[0]; }
+    template<class T> void operator+=(const T &expression) { data_[0] += expression[0]; }
 
     double *data_;
   };

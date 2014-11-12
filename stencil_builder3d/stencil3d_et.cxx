@@ -41,10 +41,10 @@ int main()
   const int jj = icells;
   const int kk = ijcells;
 
-  Field a (&a_data [0], istart, iend, jstart, jend, kstart, kend, icells, ijcells);
-  Field b (&b_data [0], istart, iend, jstart, jend, kstart, kend, icells, ijcells);
-  Field c (&c_data [0], istart, iend, jstart, jend, kstart, kend, icells, ijcells);
-  Field at(&at_data[0], istart, iend, jstart, jend, kstart, kend, icells, ijcells);
+  Field a ( a_data, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
+  Field b ( b_data, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
+  Field c ( c_data, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
+  Field at(at_data, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
 
   for (int ii=0; ii<iter; ++ii)
   {
@@ -57,7 +57,7 @@ int main()
     at = 0.;
   }
 
-  const int ijk = itot/2 + jtot/2*icells + ktot/2*ijcells;
+  const int ijk = itot/2 + (jtot/2)*icells + (ktot/2)*ijcells;
   std::cout << std::setprecision(8) << "a = " << a_data[ijk] << std::endl;
 
   return 0;

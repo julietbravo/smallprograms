@@ -127,7 +127,7 @@ int main()
              icells, ijcells);
   }
  
-  const int ijk = itot/2 + jtot/2*icells + ktot/2*ijcells;
+  const int ijk = itot/2 + (jtot/2)*icells + (ktot/2)*ijcells;
   std::cout << std::setprecision(8) << "a = " << a_data[ijk] << std::endl;
 
   return 0;
