@@ -116,6 +116,9 @@ namespace StencilBuilder
 
     double operator[](const int i) const { return data_[i]; }
 
+    double operator()(const int i, const int j, const int k) const
+    { return data_[i + j*icells_ + k*ijcells_]; }
+
     // Assignment
     template<class T> void operator= (const T &expression)
     {
