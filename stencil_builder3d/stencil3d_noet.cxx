@@ -54,6 +54,7 @@ void advection(double * const __restrict__ at, const double * const __restrict__
 }
 
 void tendency(double * const __restrict__ at, double * const __restrict__ a,
+              const double dt,
               const int istart, const int iend,
               const int jstart, const int jend,
               const int kstart, const int kend,
@@ -70,7 +71,7 @@ void tendency(double * const __restrict__ at, double * const __restrict__ a,
       for (int i=istart; i<iend; ++i)
       {
         const int ijk = i + j*jj + k*kk;
-        a[ijk] += at[ijk];
+        a[ijk] += dt*at[ijk];
       }
 
   for (int k=kstart; k<kend; ++k)
@@ -116,6 +117,8 @@ int main()
     at_data[n] = 0.;
   }
 
+  const double dt = 1.e-3;
+
   for (int ii=0; ii<iter; ++ii)
   {
     advection(at_data, a_data, b_data, c_data,
@@ -125,6 +128,7 @@ int main()
               icells, ijcells);
 
     tendency(at_data, a_data,
+             dt,
              istart, iend,
              jstart, jend,
              kstart, kend,

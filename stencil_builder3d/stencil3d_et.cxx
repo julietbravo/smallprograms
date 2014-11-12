@@ -46,13 +46,15 @@ int main()
   Field c ( c_data, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
   Field at(at_data, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
 
+  const double dt = 1.e-3;
+
   for (int n=0; n<iter; ++n)
   {
     at += grad<0>( interp<1>(a, ii) * interp<1>(a, ii), ii )
         + grad<1>( interp<0>(b, ii) * interp<0>(a, jj), jj )
         + grad<1>( interp<0>(c, ii) * interp<0>(a, kk), kk );
 
-    a += at;
+    a += dt*at;
 
     at = 0.;
   }

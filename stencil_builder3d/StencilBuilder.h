@@ -72,13 +72,26 @@ namespace StencilBuilder
     double operator[](const int i) const { return Op::apply(left_[i], right_[i]); }
   };
 
-  // Template classes for the operators
+  // Operator aggregation class, specialization for scalar multiplication
+  template<class Op, class Right>
+  struct Operator<double, Op, Right>
+  {
+    Operator(const double &left, const Right &right) : left_(left), right_(right) {}
+
+    const double &left_;
+    const Right &right_;
+
+    double operator[](const int i) const { return Op::apply(left_, right_[i]); }
+  };
+
+  // Template classes for the multiplication operator
   template<class Left, class Right>
   Operator<Left, Multiply, Right> operator*(const Left &left, const Right &right)
   {
     return Operator<Left, Multiply, Right>(left, right);
   }
 
+  // Template classes for the addition operators
   template<class Left, class Right>
   Operator<Left, Add, Right> operator+(const Left &left, const Right &right)
   {
