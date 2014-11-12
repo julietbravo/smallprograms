@@ -48,9 +48,9 @@ int main()
 
   for (int ii=0; ii<iter; ++ii)
   {
-    at += grad<0>( interp<1>(a, ii) * interp<1>(a, ii), ii )
-        + grad<1>( interp<0>(b, ii) * interp<0>(a, jj), jj )
-        + grad<1>( interp<0>(c, ii) * interp<0>(a, kk), kk );
+    at = grad<0>( interp<1>(a, ii) * interp<1>(a, ii), ii )
+       + grad<1>( interp<0>(b, ii) * interp<0>(a, jj), jj )
+       + grad<1>( interp<0>(c, ii) * interp<0>(a, kk), kk );
 
     a += at;
 

@@ -117,8 +117,7 @@ namespace StencilBuilder
     double operator[](const int i) const { return data_[i]; }
 
     // Assignment
-    template<class T>
-    void operator= (const T &expression)
+    template<class T> void operator= (const T &expression)
     {
       const int ii = 1;
       const int jj = icells_;
@@ -161,8 +160,7 @@ namespace StencilBuilder
   };
 
   // Specialization for assignment with a constant
-  template<>
-  void Field::operator= (const double &expression)
+  template<> void Field::operator= (const double &expression)
   {
     const int ii = 1;
     const int jj = icells_;
