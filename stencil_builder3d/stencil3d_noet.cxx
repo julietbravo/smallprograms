@@ -2,36 +2,35 @@
 #include <iomanip>
 #include <cstdlib>
 
-double interp(const double m2, const double m1, const double p1, const double p2)
+inline double interp(const double m2, const double m1, const double p1, const double p2)
 {
   return (-1./16)*m2 + (9./16)*m1 + (9./16)*p1 + (-1./16)*p2;
 }
 
-double grad(const double m2, const double m1, const double p1, const double p2)
+inline double grad(const double m2, const double m1, const double p1, const double p2)
 {
   return (1./24.)*m2 + (-27./24.)*m1 + (27./24.)*p1 + (-1./24.)*p2;
 }
 
-void grad_interp_val(double * const __restrict__ at, const double * const __restrict__ a,
-                     const double * const __restrict__ b, const double * const __restrict__ c,
-                     const int istart, const int iend, 
-                     const int jstart, const int jend, 
-                     const int kstart, const int kend, 
-                     const int icells, const int ijcells)
+void advection(double * const __restrict__ at, const double * const __restrict__ a,
+               const double * const __restrict__ b, const double * const __restrict__ c,
+               const int istart, const int iend, 
+               const int jstart, const int jend, 
+               const int kstart, const int kend, 
+               const int icells, const int ijcells)
 {
   const int ii1 = 1;
   const int ii2 = 2;
   const int ii3 = 3;
-  const int jj1 = 1;
-  const int jj2 = 2;
-  const int jj3 = 3;
-  const int kk1 = 1;
-  const int kk2 = 2;
-  const int kk3 = 3;
+  const int jj1 = 1*icells;
+  const int jj2 = 2*icells;
+  const int jj3 = 3*icells;
+  const int kk1 = 1*ijcells;
+  const int kk2 = 2*ijcells;
+  const int kk3 = 3*ijcells;
 
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
-      #pragma novector
       for (int i=istart; i<iend; ++i)
       {
         const int ijk = i + j*jj1 + k*kk1;
@@ -87,16 +86,16 @@ int main()
   const int jtot = 256;
   const int ktot = 256;
   const int gc   = 4;
-  const int iter = 64;
+  const int iter = 16;
 
   // Calculate the required variables.
   const int ntot = (itot+2*gc)*(jtot+2*gc)*(ktot+2*gc);
   const int istart = gc;
   const int jstart = gc;
   const int kstart = gc;
-  const int iend = istart+gc;
-  const int jend = jstart+gc;
-  const int kend = kstart+gc;
+  const int iend = itot+gc;
+  const int jend = jtot+gc;
+  const int kend = ktot+gc;
   const int icells = itot+2*gc;
   const int ijcells = (itot+2*gc)*(jtot+2*gc);
 
@@ -105,21 +104,21 @@ int main()
   double *c_data  = new double[ntot];
   double *at_data = new double[ntot];
 
-  for (int i=0; i<ntot; ++i)
+  for (int n=0; n<ntot; ++n)
   {
-    a_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
-    b_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
-    c_data[i] = 0.001 * (std::rand() % 1000) - 0.5;
-    at_data[i] = 0.;
+    a_data[n] = 0.001 * (std::rand() % 1000) - 0.5;
+    b_data[n] = 0.001 * (std::rand() % 1000) - 0.5;
+    c_data[n] = 0.001 * (std::rand() % 1000) - 0.5;
+    at_data[n] = 0.;
   }
 
   for (int ii=0; ii<iter; ++ii)
   {
-    grad_interp_val(at_data, a_data, b_data, c_data,
-                    istart, iend,
-                    jstart, jend,
-                    kstart, kend,
-                    icells, ijcells);
+    advection(at_data, a_data, b_data, c_data,
+              istart, iend,
+              jstart, jend,
+              kstart, kend,
+              icells, ijcells);
 
     tendency(at_data, a_data,
              istart, iend,
@@ -129,7 +128,7 @@ int main()
   }
  
   const int ijk = itot/2 + jtot/2*icells + ktot/2*ijcells;
-  std::cout << std::setprecision(8) << "c = " << a_data[ijk] << std::endl;
+  std::cout << std::setprecision(8) << "at = " << a_data[ijk] << std::endl;
 
   return 0;
 }

@@ -90,43 +90,20 @@ namespace StencilBuilder
   // Scalar class representing the scalar, whose operations expand compile time
   struct Scalar
   {
-    Scalar(double &data) : data_(data) {}
+    Scalar(double *data) : data_(data) {}
 
-    double operator[](const int i) const { return (&data_)[i]; }
+    double operator[](const int i) const { return data_[i]; }
 
-    template<class T> void operator= (const T &expression) { (&data_)[0] =  expression[0]; }
-    template<class T> void operator+=(const T &expression) { (&data_)[0] += expression[0]; }
+    template<class T> void operator= (const T &expression) { data[0] =  expression[0]; }
+    template<class T> void operator+=(const T &expression) { data[0] += expression[0]; }
 
-    double &data_;
-  };
-
-  // Vector class representing the vector, whose operations expand compile time
-  struct Vector
-  {
-    Vector(double &data, const int n) : data_(data), n_(n) {}
-
-    double operator[](const int i) const { return (&data_)[i]; }
-
-    template<class T> void operator= (const T &expression)
-    {
-      for (int i=3; i<n_-3; ++i)
-        (&data_)[i] = expression[i];
-    }
-
-    template<class T> void operator+=(const T &expression)
-    {
-      for (int i=3; i<n_-3; ++i)
-        (&data_)[i] += expression[i];
-    }
-
-    double &data_;
-    const int n_;
+    double *data_;
   };
 
   // Field class representing the field, whose operations expand compile time
   struct Field 
   {
-    Field(double &data, 
+    Field(double *data, 
           const int istart, const int iend,
           const int jstart, const int jend,
           const int kstart, const int kend,
@@ -137,9 +114,11 @@ namespace StencilBuilder
         kstart_(kstart), kend_(kend),
         icells_(icells), ijcells_(ijcells) {}
 
-    double operator[](const int i) const { return (&data_)[i]; }
+    double operator[](const int i) const { return data_[i]; }
 
-    template<class T> void operator= (const T &expression)
+    // Assignment
+    template<class T>
+    void operator= (const T &expression)
     {
       const int ii = 1;
       const int jj = icells_;
@@ -147,11 +126,10 @@ namespace StencilBuilder
 
       for (int k=kstart_; k<kend_; ++k)
         for (int j=jstart_; j<jend_; ++j)
-          #pragma novector
           for (int i=istart_; i<iend_; ++i)
           {
             const int ijk = i + j*jj + k*kk;
-            (&data_)[ijk] = expression[ijk];
+            data_[ijk] = expression[ijk];
           }
     }
 
@@ -163,15 +141,14 @@ namespace StencilBuilder
 
       for (int k=kstart_; k<kend_; ++k)
         for (int j=jstart_; j<jend_; ++j)
-          #pragma novector
           for (int i=istart_; i<iend_; ++i)
           {
             const int ijk = i + j*jj + k*kk;
-            (&data_)[ijk] = expression[ijk];
+            data_[ijk] = expression[ijk];
           }
     }
 
-    double &data_;
+    double *data_;
 
     const int istart_;
     const int jstart_;
@@ -182,4 +159,22 @@ namespace StencilBuilder
     const int icells_;
     const int ijcells_;
   };
+
+  // Specialization for assignment with a constant
+  template<>
+  void Field::operator= (const double &expression)
+  {
+    const int ii = 1;
+    const int jj = icells_;
+    const int kk = ijcells_;
+  
+    for (int k=kstart_; k<kend_; ++k)
+      for (int j=jstart_; j<jend_; ++j)
+        for (int i=istart_; i<iend_; ++i)
+        {
+          const int ijk = i + j*jj + k*kk;
+          data_[ijk] = expression;
+        }
+  }
 }
+
