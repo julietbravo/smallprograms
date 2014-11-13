@@ -2,16 +2,19 @@
 #include <iomanip>
 #include <cstdlib>
 
+// Fourth order interpolation function.
 inline double interp(const double m2, const double m1, const double p1, const double p2)
 {
   return (-1./16)*m2 + (9./16)*m1 + (9./16)*p1 + (-1./16)*p2;
 }
 
+// Fourth order gradient function.
 inline double grad(const double m2, const double m1, const double p1, const double p2)
 {
   return (1./24.)*m2 + (-27./24.)*m1 + (27./24.)*p1 + (-1./24.)*p2;
 }
 
+// Test function with a similar structure as the advection operator.
 void advection(double * const __restrict__ at, const double * const __restrict__ a,
                const double * const __restrict__ b, const double * const __restrict__ c,
                const int istart, const int iend,
@@ -31,7 +34,6 @@ void advection(double * const __restrict__ at, const double * const __restrict__
 
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
-      #pragma novector
       #pragma ivdep
       for (int i=istart; i<iend; ++i)
       {
@@ -53,6 +55,7 @@ void advection(double * const __restrict__ at, const double * const __restrict__
       }
 }
 
+// Test function for time integration.
 void tendency(double * const __restrict__ at, double * const __restrict__ a,
               const double dt,
               const int istart, const int iend,
@@ -66,7 +69,6 @@ void tendency(double * const __restrict__ at, double * const __restrict__ a,
 
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
-      #pragma novector
       #pragma ivdep
       for (int i=istart; i<iend; ++i)
       {
@@ -76,7 +78,6 @@ void tendency(double * const __restrict__ at, double * const __restrict__ a,
 
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
-      #pragma novector
       #pragma ivdep
       for (int i=istart; i<iend; ++i)
       {
@@ -87,6 +88,7 @@ void tendency(double * const __restrict__ at, double * const __restrict__ a,
 
 int main()
 {
+  // Test configuration settings.
   const int itot = 256;
   const int jtot = 256;
   const int ktot = 256;
@@ -104,11 +106,13 @@ int main()
   const int icells = itot+2*gc;
   const int ijcells = (itot+2*gc)*(jtot+2*gc);
 
+  // Allocate the raw arrays.
   double *a_data  = new double[ntot];
   double *b_data  = new double[ntot];
   double *c_data  = new double[ntot];
   double *at_data = new double[ntot];
 
+  // Initialize the raw arrays.
   for (int n=0; n<ntot; ++n)
   {
     a_data[n] = 0.001 * (std::rand() % 1000) - 0.5;
@@ -117,8 +121,10 @@ int main()
     at_data[n] = 0.;
   }
 
+  // Initialize a time step.
   const double dt = 1.e-3;
 
+  // Execute the loop iter times.
   for (int ii=0; ii<iter; ++ii)
   {
     advection(at_data, a_data, b_data, c_data,
@@ -135,6 +141,8 @@ int main()
              icells, ijcells);
   }
 
+  // Print a value in the middle of the field to check whether
+  // both versions give the same result.
   const int ijk = itot/2 + (jtot/2)*icells + (ktot/2)*ijcells;
   std::cout << std::setprecision(8) << "a = " << a_data[ijk] << std::endl;
 

@@ -1,6 +1,7 @@
 namespace StencilBuilder
 {
-  // Stencil operators
+  // STENCIL OPERATORS.
+  // Fourth order interpolation.
   struct Interp
   {
     static double apply_m2(const double a) { return (-1./16.)*a; }
@@ -9,6 +10,7 @@ namespace StencilBuilder
     static double apply_p2(const double a) { return (-1./16.)*a; }
   };
 
+  // Fourth order gradient.
   struct Grad
   {
     static double apply_m2(const double a) { return (  1./24.)*a; }
@@ -17,7 +19,8 @@ namespace StencilBuilder
     static double apply_p2(const double a) { return ( -1./24.)*a; }
   };
 
-  // Stencil aggregation class
+  // STENCIL NODE CLASS
+  // Stencil node in expression tree.
   template<int toCenter, class Inner, class Op>
   struct Stencil
   {
@@ -36,31 +39,35 @@ namespace StencilBuilder
     }
   };
 
-  // Template classes for the stencil operators
+  // Stencil generation operator for interpolation.
   template<int toCenter, class Inner>
   Stencil<toCenter, Inner, Interp> interp(const Inner &inner, const int nn)
   {
     return Stencil<toCenter, Inner, Interp>(inner, nn);
   }
 
+  // Stencil generation operator for gradient.
   template<int toCenter, class Inner>
   Stencil<toCenter, Inner, Grad> grad(const Inner &inner, const int nn)
   {
     return Stencil<toCenter, Inner, Grad>(inner, nn);
   }
 
-  // Scalar operators
+  // SCALAR OPERATORS
+  // Multiplication operator.
   struct Multiply
   {
     static double apply(const double left, const double right) { return left*right; }
   };
 
+  // Addition operator.
   struct Add
   {
     static double apply(const double left, const double right) { return left+right; }
   };
 
-  // Operator aggregation class
+  // OPERATOR NODE CLASS
+  // Operator node in expression tree.
   template<class Left, class Op, class Right>
   struct Operator
   {
@@ -72,7 +79,7 @@ namespace StencilBuilder
     double operator[](const int i) const { return Op::apply(left_[i], right_[i]); }
   };
 
-  // Operator aggregation class, specialization for scalar multiplication
+  // Operator aggregation class, specialization for left scalar multiplication
   template<class Op, class Right>
   struct Operator<double, Op, Right>
   {
@@ -84,14 +91,14 @@ namespace StencilBuilder
     double operator[](const int i) const { return Op::apply(left_, right_[i]); }
   };
 
-  // Template classes for the multiplication operator
+  // Template classes for the multiplication operator.
   template<class Left, class Right>
   Operator<Left, Multiply, Right> operator*(const Left &left, const Right &right)
   {
     return Operator<Left, Multiply, Right>(left, right);
   }
 
-  // Template classes for the addition operators
+  // Template classes for the addition operators.
   template<class Left, class Right>
   Operator<Left, Add, Right> operator+(const Left &left, const Right &right)
   {
@@ -113,7 +120,7 @@ namespace StencilBuilder
   };
   */
 
-  // Field class representing the field, whose operations expand compile time
+  // Field class representing the field, whose operations expand compile time.
   struct Field
   {
     Field(double *data,
@@ -132,7 +139,7 @@ namespace StencilBuilder
     double operator()(const int i, const int j, const int k) const
     { return data_[i + j*icells_ + k*ijcells_]; }
 
-    // Assignment
+    // Assignment operator, this operator stats the inline expansion.
     template<class T> void operator= (const T &expression)
     {
       const int jj = icells_;
@@ -148,6 +155,7 @@ namespace StencilBuilder
           }
     }
 
+    // Compound assignment operator, this operator stats the inline expansion.
     template<class T> void operator+=(const T &expression)
     {
       const int jj = icells_;
@@ -163,8 +171,10 @@ namespace StencilBuilder
           }
     }
 
+    // Pointer to the raw data.
     double *data_;
 
+    // Field properties.
     const int istart_;
     const int iend_;
     const int jstart_;
@@ -175,7 +185,7 @@ namespace StencilBuilder
     const int ijcells_;
   };
 
-  // Specialization for assignment with a constant
+  // Specialization for assignment with a constant.
   template<> void Field::operator= (const double &expression)
   {
     const int jj = icells_;
