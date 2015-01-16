@@ -79,6 +79,7 @@ void readIniFile(char *argv[])
       std::string right = strings[1];
       boost::trim(left);
       boost::trim(right);
+      checkString(left);
 
       // Leave the checking of the right string for later
       // when the type is known.
@@ -101,7 +102,15 @@ void readIniFile(char *argv[])
 
 int main(int argc, char *argv[])
 {
-  readIniFile(argv);
+  try
+  {
+    readIniFile(argv);
+  }
+  catch (std::runtime_error &e)
+  {
+    std::cout << "EXCEPTION: " << e.what() << std::endl;
+    return 1;
+  }
 
   return 0;
 }
