@@ -5,7 +5,7 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
-std::string checkString(const std::string &s)
+void checkString(const std::string &s)
 {
   // Check whether string is empty or whether the first character is not alpha.
   if (s.empty())
@@ -15,7 +15,7 @@ std::string checkString(const std::string &s)
 
   // Return string if all characters are alphanumeric.
   if (find_if(s.begin(), s.end(), [](const char c) { return !isalnum(c); }) == s.end())
-    return s;
+    return;
   else
     throw std::runtime_error("Illegal string: " + s);
 }
@@ -30,11 +30,11 @@ void readIniFile(char *argv[])
 
   while (std::getline(infile, line))
   {
-    // Strip of the comments
+    // Strip of the comments.
     std::vector<std::string> strings;
     boost::split(strings, line, boost::is_any_of("#"));
 
-    // Keep part that is not comment
+    // Keep part that is not comment.
     if (strings.size() >= 2)
       line = strings[0];
 
@@ -45,7 +45,7 @@ void readIniFile(char *argv[])
     strings.clear();
     boost::split(strings, line, boost::is_any_of("="));
 
-    // In case of no equal, check whether we have a block header.
+    // In case of one element, check whether we have a block header.
     if (strings.size() == 1)
     {
       std::string header = strings[0];
@@ -56,23 +56,32 @@ void readIniFile(char *argv[])
       {
         continue;
       }
+
+      // Store the block name.
       if (header.front() == '[' && header.back() == ']')
       {
-        blockname = checkString(header.substr(1, header.size()-2));
+        blockname = header.substr(1, header.size()-2);
+        checkString(blockname);
       }
       else
       {
         throw std::runtime_error("Illegal line");
       }
     }
+    // Read item
     else if (strings.size() == 2)
     {
       if (blockname.empty())
       {
         throw std::runtime_error("No block name found");
       }
-      std::string left  = checkString(strings[0]);
+      std::string left  = strings[0];
       std::string right = strings[1];
+      boost::trim(left);
+      boost::trim(right);
+
+      // Leave the checking of the right string for later
+      // when the type is known.
       itemlist[blockname][left] = right;
     }
     // Throw an error.
@@ -85,7 +94,7 @@ void readIniFile(char *argv[])
   // Print the list as a test
   for (auto &m : itemlist) {
     for (auto &s : m.second) {
-      std::cout << m.first << ", " << s.first << ", " << s.second << std::endl;
+      std::cout << m.first << "," << s.first << "," << s.second << ";" << std::endl;
     }
   }
 }
