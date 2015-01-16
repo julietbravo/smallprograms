@@ -5,6 +5,19 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
+std::string checkString(const std::string &s)
+{
+  if (s.empty())
+    throw std::runtime_error("Illegal string");
+  else if (!isalpha(s[0]))
+    throw std::runtime_error("Illegal string");
+
+  if (find_if(s.begin(), s.end(), [](const char c) { return !isalnum(c); }) == s.end())
+    return s;
+  else
+    throw std::runtime_error("Illegal string");
+}
+
 int main(int argc, char *argv[])
 {
   std::map< std::string, std::map<std::string, std::string> > itemlist;
@@ -35,6 +48,7 @@ int main(int argc, char *argv[])
     {
       std::string header = strings[0];
       boost::trim(header);
+
       // If only an empty line remains, jump to the next line.
       if (header.empty())
       {
@@ -42,7 +56,7 @@ int main(int argc, char *argv[])
       }
       if (header.front() == '[' && header.back() == ']')
       {
-        blockname = header.substr(1, header.size()-2);
+        blockname = checkString(header.substr(1, header.size()-2));
       }
       else
       {
