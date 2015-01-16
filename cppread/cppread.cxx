@@ -7,18 +7,20 @@
 
 std::string checkString(const std::string &s)
 {
+  // Check whether string is empty or whether the first character is not alpha.
   if (s.empty())
     throw std::runtime_error("Illegal string");
   else if (!isalpha(s[0]))
-    throw std::runtime_error("Illegal string");
+    throw std::runtime_error("Illegal string: " + s);
 
+  // Return string if all characters are alphanumeric.
   if (find_if(s.begin(), s.end(), [](const char c) { return !isalnum(c); }) == s.end())
     return s;
   else
-    throw std::runtime_error("Illegal string");
+    throw std::runtime_error("Illegal string: " + s);
 }
 
-int main(int argc, char *argv[])
+void readIniFile(char *argv[])
 {
   std::map< std::string, std::map<std::string, std::string> > itemlist;
   std::string blockname;
@@ -69,7 +71,7 @@ int main(int argc, char *argv[])
       {
         throw std::runtime_error("No block name found");
       }
-      std::string left  = strings[0];
+      std::string left  = checkString(strings[0]);
       std::string right = strings[1];
       itemlist[blockname][left] = right;
     }
@@ -86,6 +88,11 @@ int main(int argc, char *argv[])
       std::cout << m.first << ", " << s.first << ", " << s.second << std::endl;
     }
   }
+}
+
+int main(int argc, char *argv[])
+{
+  readIniFile(argv);
 
   return 0;
 }
