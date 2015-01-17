@@ -78,7 +78,7 @@ void readIniFile(char *argv[])
       {
         throw std::runtime_error("No block name found");
       }
-      std::string left  = strings[0];
+      std::string left = strings[0];
       std::string right = strings[1];
       boost::trim(left);
       boost::trim(right);
@@ -116,12 +116,15 @@ T getItem(std::string blockname, std::string itemname)
 
   std::string value = ititem->second;
   std::istringstream ss(value);
-  ss.exceptions(std::ios::failbit);
 
   T item;
-  ss >> item;
+  if (!(ss >> item))
+    throw std::runtime_error("Item does not match type");
 
   // Check whether stringstream is empty, if not type is incorrect.
+  std::string dummy;
+  if (ss >> dummy)
+    throw std::runtime_error("Partial item does not match type");
 
   return item;
 }
@@ -149,7 +152,6 @@ std::vector<T> getList(std::string blockname, std::string itemname)
     T item;
 
     std::istringstream ss(itemstring);
-    ss.exceptions(std::ios::failbit);
     ss >> item;
 
     list.push_back(item);
@@ -164,12 +166,14 @@ int main(int argc, char *argv[])
   {
     readIniFile(argv);
     int itot = getItem<int>("grid", "itot");
+    double xsize = getItem<double>("grid", "xsize");
     double zsize = getItem<double>("grid", "zsize");
     std::string swthermo = getItem<std::string>("thermo", "swthermo");
     std::vector<std::string> crosslist = getList<std::string>("cross", "crosslist");
     std::vector<double> xy = getList<double>("cross", "xy");
 
     std::cout << "itot = " << itot  << std::endl;
+    std::cout << "xsize = " << xsize << std::endl;
     std::cout << "zsize = " << zsize << std::endl;
     std::cout << "swthermo = " << swthermo << std::endl;
     std::cout << "crosslist = ";
