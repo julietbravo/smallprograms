@@ -9,7 +9,11 @@
 // Item list is a global variable in this test.
 std::map< std::string, std::map<std::string, std::string> > itemlist;
 
-void checkString(const std::string &s)
+template<typename T>
+void checkItem(const T &t) {}
+
+template<>
+void checkItem(const std::string &s)
 {
   // Check whether string is empty or whether the first character is not alpha.
   if (s.empty())
@@ -64,7 +68,7 @@ void readIniFile(char *argv[])
       if (header.front() == '[' && header.back() == ']')
       {
         blockname = header.substr(1, header.size()-2);
-        checkString(blockname);
+        checkItem(blockname);
       }
       else
       {
@@ -82,7 +86,7 @@ void readIniFile(char *argv[])
       std::string right = strings[1];
       boost::trim(left);
       boost::trim(right);
-      checkString(left);
+      checkItem(left);
 
       // Leave the checking of the right string for later
       // when the type is known.
@@ -117,12 +121,8 @@ std::string getItemString(const std::string &blockname, const std::string &itemn
 }
 
 template<typename T>
-T getItem(const std::string &blockname, const std::string &itemname)
+T getItemFromStream(std::istringstream &ss)
 {
-  std::string value = getItemString(blockname, itemname);
-
-  std::istringstream ss(value);
-
   // Read the item from the stringstream
   T item;
   if (!(ss >> item))
@@ -132,6 +132,20 @@ T getItem(const std::string &blockname, const std::string &itemname)
   std::string dummy;
   if (ss >> dummy)
     throw std::runtime_error("Partial item does not match type");
+
+  return item;
+}
+
+
+template<typename T>
+T getItem(const std::string &blockname, const std::string &itemname)
+{
+  std::string value = getItemString(blockname, itemname);
+
+  std::istringstream ss(value);
+
+  T item = getItemFromStream<T>(ss);
+  checkItem<T>(item);
 
   return item;
 }
@@ -147,11 +161,9 @@ std::vector<T> getList(const std::string &blockname, const std::string &itemname
   std::vector<T> list;
   for (std::string itemstring : listitems)
   {
-    T item;
-
     std::istringstream ss(itemstring);
-    ss >> item;
-
+    T item = getItemFromStream<T>(ss);
+    checkItem(item);
     list.push_back(item);
   }
 
