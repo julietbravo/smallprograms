@@ -18,7 +18,7 @@ void checkString(const std::string &s)
     throw std::runtime_error("Illegal string: " + s);
 
   // Return string if all characters are alphanumeric.
-  if (find_if(s.begin(), s.end(), [](const char c) { return !isalnum(c); }) == s.end())
+  if (find_if(s.begin(), s.end(), [](const char c) { return !std::isalnum(c); }) == s.end())
     return;
   else
     throw std::runtime_error("Illegal string: " + s);
@@ -123,6 +123,7 @@ T getItem(const std::string &blockname, const std::string &itemname)
 
   std::istringstream ss(value);
 
+  // Read the item from the stringstream
   T item;
   if (!(ss >> item))
     throw std::runtime_error("Item does not match type");
@@ -176,7 +177,7 @@ int main(int argc, char *argv[])
     std::cout << "crosslist = ";
     for (std::string &s : crosslist)
     {
-      std::cout << s << " ";
+      std::cout << "\"" << s << "\"" << " ";
     }
     std::cout << std::endl;
 
