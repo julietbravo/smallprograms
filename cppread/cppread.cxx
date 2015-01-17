@@ -103,8 +103,7 @@ void readIniFile(char *argv[])
   }
 }
 
-template<typename T>
-T getItem(std::string blockname, std::string itemname)
+std::string getItemString(const std::string &blockname, const std::string &itemname)
 {
   auto itblock = itemlist.find(blockname);
   if (itblock == itemlist.end())
@@ -114,7 +113,14 @@ T getItem(std::string blockname, std::string itemname)
   if (ititem == itblock->second.end())
     throw std::runtime_error("Item does not exist");
 
-  std::string value = ititem->second;
+  return ititem->second;
+}
+
+template<typename T>
+T getItem(const std::string &blockname, const std::string &itemname)
+{
+  std::string value = getItemString(blockname, itemname);
+
   std::istringstream ss(value);
 
   T item;
@@ -130,18 +136,9 @@ T getItem(std::string blockname, std::string itemname)
 }
 
 template<typename T>
-std::vector<T> getList(std::string blockname, std::string itemname)
+std::vector<T> getList(const std::string &blockname, const std::string &itemname)
 {
-  auto itblock = itemlist.find(blockname);
-  if (itblock == itemlist.end())
-    throw std::runtime_error("Block does not exist");
-
-  auto ititem = itblock->second.find(itemname);
-  if (ititem == itblock->second.end())
-    throw std::runtime_error("Item does not exist");
-
-  std::string value = ititem->second;
-  std::istringstream ss(value);
+  std::string value = getItemString(blockname, itemname);
 
   std::vector<std::string> listitems;
   boost::split(listitems, value, boost::is_any_of(","));
