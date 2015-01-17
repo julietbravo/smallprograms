@@ -116,9 +116,12 @@ T getItem(std::string blockname, std::string itemname)
 
   std::string value = ititem->second;
   std::istringstream ss(value);
+  ss.exceptions(std::ios::failbit);
 
   T item;
   ss >> item;
+
+  // Check whether stringstream is empty, if not type is incorrect.
 
   return item;
 }
@@ -146,6 +149,7 @@ std::vector<T> getList(std::string blockname, std::string itemname)
     T item;
 
     std::istringstream ss(itemstring);
+    ss.exceptions(std::ios::failbit);
     ss >> item;
 
     list.push_back(item);
@@ -182,7 +186,7 @@ int main(int argc, char *argv[])
     }
     std::cout << std::endl;
   }
-  catch (std::runtime_error &e)
+  catch (std::exception &e)
   {
     std::cout << "EXCEPTION: " << e.what() << std::endl;
     return 1;
