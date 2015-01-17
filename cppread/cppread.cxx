@@ -1,9 +1,13 @@
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 #include <map>
 #include <iostream>
 #include <boost/algorithm/string.hpp>
+
+// Item list is a global variable in this test.
+std::map< std::string, std::map<std::string, std::string> > itemlist;
 
 void checkString(const std::string &s)
 {
@@ -22,7 +26,6 @@ void checkString(const std::string &s)
 
 void readIniFile(char *argv[])
 {
-  std::map< std::string, std::map<std::string, std::string> > itemlist;
   std::string blockname;
 
   std::ifstream infile(argv[1]);
@@ -100,11 +103,84 @@ void readIniFile(char *argv[])
   }
 }
 
+template<typename T>
+T getItem(std::string blockname, std::string itemname)
+{
+  auto itblock = itemlist.find(blockname);
+  if (itblock == itemlist.end())
+    throw std::runtime_error("Block does not exist");
+
+  auto ititem = itblock->second.find(itemname);
+  if (ititem == itblock->second.end())
+    throw std::runtime_error("Item does not exist");
+
+  std::string value = ititem->second;
+  std::istringstream ss(value);
+
+  T item;
+  ss >> item;
+
+  return item;
+}
+
+template<typename T>
+std::vector<T> getList(std::string blockname, std::string itemname)
+{
+  auto itblock = itemlist.find(blockname);
+  if (itblock == itemlist.end())
+    throw std::runtime_error("Block does not exist");
+
+  auto ititem = itblock->second.find(itemname);
+  if (ititem == itblock->second.end())
+    throw std::runtime_error("Item does not exist");
+
+  std::string value = ititem->second;
+  std::istringstream ss(value);
+
+  std::vector<std::string> listitems;
+  boost::split(listitems, value, boost::is_any_of(","));
+
+  std::vector<T> list;
+  for (std::string itemstring : listitems)
+  {
+    T item;
+
+    std::istringstream ss(itemstring);
+    ss >> item;
+
+    list.push_back(item);
+  }
+
+  return list;
+}
+
 int main(int argc, char *argv[])
 {
   try
   {
     readIniFile(argv);
+    int itot = getItem<int>("grid", "itot");
+    double zsize = getItem<double>("grid", "zsize");
+    std::string swthermo = getItem<std::string>("thermo", "swthermo");
+    std::vector<std::string> crosslist = getList<std::string>("cross", "crosslist");
+    std::vector<double> xy = getList<double>("cross", "xy");
+
+    std::cout << "itot = " << itot  << std::endl;
+    std::cout << "zsize = " << zsize << std::endl;
+    std::cout << "swthermo = " << swthermo << std::endl;
+    std::cout << "crosslist = ";
+    for (std::string &s : crosslist)
+    {
+      std::cout << s << " ";
+    }
+    std::cout << std::endl;
+
+    std::cout << "xy = ";
+    for (double &i : xy)
+    {
+      std::cout << i << " ";
+    }
+    std::cout << std::endl;
   }
   catch (std::runtime_error &e)
   {
