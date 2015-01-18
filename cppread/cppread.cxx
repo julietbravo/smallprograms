@@ -62,7 +62,7 @@ void readIniFile(char *argv[])
       if (header.empty())
         continue;
 
-      // Store the block name.
+      // Store the block name and check for validity of string.
       if (header.front() == '[' && header.back() == ']')
       {
         blockname = header.substr(1, header.size()-2);
@@ -178,16 +178,12 @@ int main(int argc, char *argv[])
     std::cout << "swthermo = " << swthermo << std::endl;
     std::cout << "crosslist = ";
     for (std::string &s : crosslist)
-    {
       std::cout << "\"" << s << "\"" << " ";
-    }
     std::cout << std::endl;
 
     std::cout << "xy = ";
     for (double &i : xy)
-    {
       std::cout << i << " ";
-    }
     std::cout << std::endl;
   }
   catch (std::exception &e)
