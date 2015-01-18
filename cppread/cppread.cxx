@@ -7,7 +7,7 @@
 #include <boost/algorithm/string.hpp>
 
 // Item list is a global variable in this test.
-std::map< std::string, std::map<std::string, std::string> > itemlist;
+std::map< std::string, std::map< std::string, std::map<std::string, std::string> > > itemlist;
 
 template<typename T>
 void checkItem(const T &t) {}
@@ -34,7 +34,7 @@ void readIniFile(const std::string &file_name)
 
     // Read file and throw exception on error.
     std::ifstream infile;
-    infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    // infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
     infile.open(file_name);
 
     std::string line;
@@ -85,11 +85,29 @@ void readIniFile(const std::string &file_name)
             std::string right = strings[1];
             boost::trim(left);
             boost::trim(right);
+
+            // Check if suboptions are defined.
+            std::string leftsub;
+            std::size_t openpos = left.find_first_of("[");
+            std::size_t closepos = left.find_last_of("]");
+            if (openpos != std::string::npos && closepos != std::string::npos)
+            {
+                if (openpos < closepos)
+                {
+                    // Save the suboption and check string.
+                    leftsub = left.substr(openpos+1, closepos-openpos-1);
+                    checkItem(leftsub);
+
+                    // Strip of suboption.
+                    left = left.substr(0, openpos);
+                }
+            }
+
             checkItem(left);
 
             // Leave the checking of the right string for later
             // when the type is known.
-            itemlist[blockname][left] = right;
+            itemlist[blockname][left][leftsub] = right;
         }
         // Throw an error.
         else
@@ -97,12 +115,15 @@ void readIniFile(const std::string &file_name)
     }
 
     // Print the list as a test.
-    for (auto &m : itemlist)
-        for (auto &s : m.second)
-            std::cout << m.first << "," << s.first << "," << s.second << ";" << std::endl;
+    for (auto &b : itemlist)
+        for (auto &i : b.second)
+            for (auto &is : i.second)
+                std::cout << b.first << "," << i.first << "," << is.first << "," << is.second << ";" << std::endl;
 }
 
-std::string getItemString(const std::string &blockname, const std::string &itemname)
+std::string getItemString(const std::string &blockname,
+                          const std::string &itemname,
+                          const std::string &subitemname)
 {
     auto itblock = itemlist.find(blockname);
     if (itblock == itemlist.end())
@@ -112,7 +133,11 @@ std::string getItemString(const std::string &blockname, const std::string &itemn
     if (ititem == itblock->second.end())
         throw std::runtime_error("Item does not exist");
 
-    return ititem->second;
+    auto itsubitem = ititem->second.find(subitemname);
+    if (itsubitem == ititem->second.end())
+        throw std::runtime_error("Subitem does not exist");
+
+    return itsubitem->second;
 }
 
 template<typename T>
@@ -132,9 +157,11 @@ T getItemFromStream(std::istringstream &ss)
 }
 
 template<typename T>
-T getItem(const std::string &blockname, const std::string &itemname)
+T getItem(const std::string &blockname,
+          const std::string &itemname,
+          const std::string &subitemname = "")
 {
-    std::string value = getItemString(blockname, itemname);
+    std::string value = getItemString(blockname, itemname, subitemname);
 
     std::istringstream ss(value);
 
@@ -145,9 +172,11 @@ T getItem(const std::string &blockname, const std::string &itemname)
 }
 
 template<typename T>
-std::vector<T> getList(const std::string &blockname, const std::string &itemname)
+std::vector<T> getList(const std::string &blockname,
+                       const std::string &itemname,
+                       const std::string &subitemname = "")
 {
-    std::string value = getItemString(blockname, itemname);
+    std::string value = getItemString(blockname, itemname, subitemname);
 
     std::vector<std::string> listitems;
     boost::split(listitems, value, boost::is_any_of(","));
@@ -180,6 +209,8 @@ int main(int argc, char *argv[])
         std::string swthermo = getItem<std::string>("thermo", "swthermo");
         std::vector<std::string> crosslist = getList<std::string>("cross", "crosslist");
         std::vector<double> xy = getList<double>("cross", "xy");
+        double rndamp = getItem<double>("fields", "rndamp");
+        double rndampb = getItem<double>("fields", "rndamp", "b");
 
         std::cout << "itot = " << itot  << std::endl;
         std::cout << "xsize = " << xsize << std::endl;
@@ -194,6 +225,9 @@ int main(int argc, char *argv[])
         for (double &i : xy)
             std::cout << i << " ";
         std::cout << std::endl;
+
+        std::cout << "rndamp = " << rndamp << std::endl;
+        std::cout << "rndamp[b] = " << rndampb << std::endl;
     }
     catch (std::exception &e)
     {
