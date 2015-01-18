@@ -60,9 +60,7 @@ void readIniFile(char *argv[])
 
       // If only an empty line remains, jump to the next line.
       if (header.empty())
-      {
         continue;
-      }
 
       // Store the block name.
       if (header.front() == '[' && header.back() == ']')
@@ -71,17 +69,14 @@ void readIniFile(char *argv[])
         checkItem(blockname);
       }
       else
-      {
         throw std::runtime_error("Illegal line");
-      }
     }
-    // Read item
+    // Read item.
     else if (strings.size() == 2)
     {
       if (blockname.empty())
-      {
         throw std::runtime_error("No block name found");
-      }
+
       std::string left = strings[0];
       std::string right = strings[1];
       boost::trim(left);
@@ -94,17 +89,13 @@ void readIniFile(char *argv[])
     }
     // Throw an error.
     else
-    {
       throw std::runtime_error("Illegal line");
-    }
   }
 
-  // Print the list as a test
-  for (auto &m : itemlist) {
-    for (auto &s : m.second) {
+  // Print the list as a test.
+  for (auto &m : itemlist)
+    for (auto &s : m.second)
       std::cout << m.first << "," << s.first << "," << s.second << ";" << std::endl;
-    }
-  }
 }
 
 std::string getItemString(const std::string &blockname, const std::string &itemname)
@@ -123,7 +114,7 @@ std::string getItemString(const std::string &blockname, const std::string &itemn
 template<typename T>
 T getItemFromStream(std::istringstream &ss)
 {
-  // Read the item from the stringstream
+  // Read the item from the stringstream, operator >> trims automatically.
   T item;
   if (!(ss >> item))
     throw std::runtime_error("Item does not match type");
@@ -135,7 +126,6 @@ T getItemFromStream(std::istringstream &ss)
 
   return item;
 }
-
 
 template<typename T>
 T getItem(const std::string &blockname, const std::string &itemname)
