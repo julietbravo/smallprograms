@@ -1,3 +1,8 @@
+// Main file headers
+#include <vector>
+#include <iostream>
+
+// Source file headers
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -6,29 +11,44 @@
 #include <iostream>
 #include <boost/algorithm/string.hpp>
 
-// Item list is a global variable in this test.
-std::map< std::string, std::map< std::string, std::map<std::string, std::string> > > itemlist;
+// Header file
+typedef std::map< std::string, std::map< std::string, std::map<std::string, std::string> > > ItemList;
 
-template<typename T>
-void checkItem(const T &t) {}
-
-template<>
-void checkItem(const std::string &s)
+class Input
 {
-    // Check whether string is empty or whether the first character is not alpha.
-    if (s.empty())
-        throw std::runtime_error("Illegal string");
-    else if (!isalpha(s[0]))
-        throw std::runtime_error("Illegal string: " + s);
+    public:
+        Input(const std::string&);
+        template<typename T> T getItem(const std::string&, const std::string&, const std::string& = "");
+        template<typename T> std::vector<T> getList(const std::string&, const std::string&, const std::string& = "");
+        void printItemList();
+    private:
+        ItemList itemlist;
+};
 
-    // Return string if all characters are alphanumeric.
-    if (find_if(s.begin(), s.end(), [](const char c) { return !std::isalnum(c); }) == s.end())
-        return;
-    else
-        throw std::runtime_error("Illegal string: " + s);
+// Source file
+namespace
+{
+    template<typename T>
+    void checkItem(const T &t) {}
+    
+    template<>
+    void checkItem(const std::string &s)
+    {
+        // Check whether string is empty or whether the first character is not alpha.
+        if (s.empty())
+            throw std::runtime_error("Illegal string");
+        else if (!isalpha(s[0]))
+            throw std::runtime_error("Illegal string: " + s);
+    
+        // Return string if all characters are alphanumeric.
+        if (find_if(s.begin(), s.end(), [](const char c) { return !std::isalnum(c); }) == s.end())
+            return;
+        else
+            throw std::runtime_error("Illegal string: " + s);
+    }
 }
 
-void readIniFile(const std::string &file_name)
+Input::Input(const std::string& file_name)
 {
     std::string blockname;
 
@@ -115,7 +135,7 @@ void readIniFile(const std::string &file_name)
     }
 }
 
-void printItemList()
+void Input::printItemList()
 {
     // Print the list as a test.
     for (auto &b : itemlist)
@@ -123,48 +143,52 @@ void printItemList()
             for (auto &is : i.second)
                 std::cout << b.first << "," << i.first << "," << is.first << "," << is.second << ";" << std::endl;
 }
-
-std::string getItemString(const std::string &blockname,
-                          const std::string &itemname,
-                          const std::string &subitemname)
+    
+namespace
 {
-    auto itblock = itemlist.find(blockname);
-    if (itblock == itemlist.end())
-        throw std::runtime_error("Block does not exist");
-
-    auto ititem = itblock->second.find(itemname);
-    if (ititem == itblock->second.end())
-        throw std::runtime_error("Item does not exist");
-
-    auto itsubitem = ititem->second.find(subitemname);
-    if (itsubitem == ititem->second.end())
-        throw std::runtime_error("Subitem does not exist");
-
-    return itsubitem->second;
+    std::string getItemString(const ItemList& itemlist,
+                              const std::string& blockname,
+                              const std::string& itemname,
+                              const std::string& subitemname)
+    {
+        auto itblock = itemlist.find(blockname);
+        if (itblock == itemlist.end())
+            throw std::runtime_error("Block does not exist");
+    
+        auto ititem = itblock->second.find(itemname);
+        if (ititem == itblock->second.end())
+            throw std::runtime_error("Item does not exist");
+    
+        auto itsubitem = ititem->second.find(subitemname);
+        if (itsubitem == ititem->second.end())
+            throw std::runtime_error("Subitem does not exist");
+    
+        return itsubitem->second;
+    }
+    
+    template<typename T>
+    T getItemFromStream(std::istringstream &ss)
+    {
+        // Read the item from the stringstream, operator >> trims automatically.
+        T item;
+        if (!(ss >> item))
+            throw std::runtime_error("Item does not match type");
+    
+        // Check whether stringstream is empty, if not type is incorrect.
+        std::string dummy;
+        if (ss >> dummy)
+            throw std::runtime_error("Partial item does not match type");
+    
+        return item;
+    }
 }
 
 template<typename T>
-T getItemFromStream(std::istringstream &ss)
+T Input::getItem(const std::string& blockname,
+                 const std::string& itemname,
+                 const std::string& subitemname)
 {
-    // Read the item from the stringstream, operator >> trims automatically.
-    T item;
-    if (!(ss >> item))
-        throw std::runtime_error("Item does not match type");
-
-    // Check whether stringstream is empty, if not type is incorrect.
-    std::string dummy;
-    if (ss >> dummy)
-        throw std::runtime_error("Partial item does not match type");
-
-    return item;
-}
-
-template<typename T>
-T getItem(const std::string &blockname,
-          const std::string &itemname,
-          const std::string &subitemname = "")
-{
-    std::string value = getItemString(blockname, itemname, subitemname);
+    std::string value = getItemString(itemlist, blockname, itemname, subitemname);
 
     std::istringstream ss(value);
 
@@ -175,11 +199,11 @@ T getItem(const std::string &blockname,
 }
 
 template<typename T>
-std::vector<T> getList(const std::string &blockname,
-                       const std::string &itemname,
-                       const std::string &subitemname = "")
+std::vector<T> Input::getList(const std::string &blockname,
+                              const std::string &itemname,
+                              const std::string &subitemname)
 {
-    std::string value = getItemString(blockname, itemname, subitemname);
+    std::string value = getItemString(itemlist, blockname, itemname, subitemname);
 
     std::vector<std::string> listitems;
     boost::split(listitems, value, boost::is_any_of(","));
@@ -195,7 +219,6 @@ std::vector<T> getList(const std::string &blockname,
 
     return list;
 }
-
 int main(int argc, char *argv[])
 {
     try
@@ -204,17 +227,17 @@ int main(int argc, char *argv[])
             throw std::runtime_error("Illegal number or arguments");
 
         std::string file_name = std::string(argv[1]);
-        readIniFile(file_name);
-        printItemList();
+        Input input(file_name);
+        input.printItemList();
 
-        int itot = getItem<int>("grid", "itot");
-        double xsize = getItem<double>("grid", "xsize");
-        double zsize = getItem<double>("grid", "zsize");
-        std::string swthermo = getItem<std::string>("thermo", "swthermo");
-        std::vector<std::string> crosslist = getList<std::string>("cross", "crosslist");
-        std::vector<double> xy = getList<double>("cross", "xy");
-        double rndamp = getItem<double>("fields", "rndamp");
-        double rndampb = getItem<double>("fields", "rndamp", "b");
+        int itot = input.getItem<int>("grid", "itot");
+        double xsize = input.getItem<double>("grid", "xsize");
+        double zsize = input.getItem<double>("grid", "zsize");
+        std::string swthermo = input.getItem<std::string>("thermo", "swthermo");
+        std::vector<std::string> crosslist = input.getList<std::string>("cross", "crosslist");
+        std::vector<double> xy = input.getList<double>("cross", "xy");
+        double rndamp = input.getItem<double>("fields", "rndamp");
+        double rndampb = input.getItem<double>("fields", "rndamp", "b");
 
         std::cout << "itot = " << itot  << std::endl;
         std::cout << "xsize = " << xsize << std::endl;
