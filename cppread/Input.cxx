@@ -131,7 +131,7 @@ void Input::printItemList()
     
 namespace
 {
-    std::string getItemString(const ItemList& itemlist,
+    std::string getItemString(const Input::ItemList& itemlist,
                               const std::string& blockname,
                               const std::string& itemname,
                               const std::string& subitemname)
