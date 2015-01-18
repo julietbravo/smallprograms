@@ -34,7 +34,7 @@ void readIniFile(const std::string &file_name)
 
     // Read file and throw exception on error.
     std::ifstream infile;
-    // infile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    infile.exceptions(std::ifstream::failbit);
     infile.open(file_name);
 
     std::string line;
