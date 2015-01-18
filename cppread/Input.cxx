@@ -39,6 +39,8 @@ Input::Input(const std::string& file_name)
     std::ifstream infile;
     // infile.exceptions(std::ifstream::failbit);
     infile.open(file_name);
+    if (!infile.good())
+        throw std::runtime_error("Illegal file name");
 
     std::string line;
 
