@@ -113,7 +113,10 @@ void readIniFile(const std::string &file_name)
         else
             throw std::runtime_error("Illegal line");
     }
+}
 
+void printItemList()
+{
     // Print the list as a test.
     for (auto &b : itemlist)
         for (auto &i : b.second)
@@ -202,6 +205,7 @@ int main(int argc, char *argv[])
 
         std::string file_name = std::string(argv[1]);
         readIniFile(file_name);
+        printItemList();
 
         int itot = getItem<int>("grid", "itot");
         double xsize = getItem<double>("grid", "xsize");
