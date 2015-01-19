@@ -12,10 +12,10 @@
 namespace
 {
     template<typename T>
-    void checkItem(const T &t) {}
+    void checkItem(const T& t) {}
     
     template<>
-    void checkItem(const std::string &s)
+    void checkItem(const std::string& s)
     {
         // Check whether string is empty or whether the first character is not alpha.
         if (s.empty())
@@ -124,9 +124,9 @@ Input::Input(const std::string& file_name)
 void Input::printItemList()
 {
     // Print the list as a test.
-    for (auto &b : itemlist)
-        for (auto &i : b.second)
-            for (auto &is : i.second)
+    for (auto& b : itemlist)
+        for (auto& i : b.second)
+            for (auto& is : i.second)
                 std::cout << b.first << "," << i.first << "," << is.first << "," << is.second << ";" << std::endl;
 }
     
@@ -153,7 +153,7 @@ namespace
     }
     
     template<typename T>
-    T getItemFromStream(std::istringstream &ss)
+    T getItemFromStream(std::istringstream& ss)
     {
         // Read the item from the stringstream, operator >> trims automatically.
         T item;
@@ -185,9 +185,9 @@ T Input::getItem(const std::string& blockname,
 }
 
 template<typename T>
-std::vector<T> Input::getList(const std::string &blockname,
-                              const std::string &itemname,
-                              const std::string &subitemname)
+std::vector<T> Input::getList(const std::string& blockname,
+                              const std::string& itemname,
+                              const std::string& subitemname)
 {
     std::string value = getItemString(itemlist, blockname, itemname, subitemname);
 
