@@ -72,7 +72,8 @@ Input::Input(const std::string& file_name)
                 continue;
 
             // Store the block name and check for validity of string.
-            if (header.front() == '[' && header.back() == ']')
+            // TODO: use .front() and back() C++11 once Intel supports it.
+            if (header.at(0) == '[' && header.at(header.size()-1) == ']')
             {
                 blockname = header.substr(1, header.size()-2);
                 checkItem(blockname);
