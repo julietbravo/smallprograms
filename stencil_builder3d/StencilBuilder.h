@@ -105,20 +105,20 @@ namespace StencilBuilder
     return Operator<Left, Add, Right>(left, right);
   }
 
-  /*
   // Scalar class representing the scalar, whose operations expand compile time
   struct Scalar
   {
     Scalar(double *data) : data_(data) {}
 
-    double operator[](const int i) const { return data_[i]; }
+    double& operator[](const int i) const { return data_[i]; }
 
     template<class T> void operator= (const T &expression) { data_[0] =  expression[0]; }
     template<class T> void operator+=(const T &expression) { data_[0] += expression[0]; }
 
     double *data_;
   };
-  */
+
+  template<> void Scalar::operator= (const double &expression) { data_[0] = expression; }
 
   // Field class representing the field, whose operations expand compile time.
   struct Field
