@@ -7,10 +7,9 @@
 
 using namespace StencilBuilder;
 
-void kernel(double * restrict at_data, double * restrict a_data, double * restrict b_data, double * restrict c_data,
-            const double dt,
-            const int istart, const int iend, const int jstart, const int jend, const int kstart, const int kend,
-            const int ii, const int jj, const int kk)
+void advection(double * restrict at_data, double * restrict a_data, double * restrict b_data, double * restrict c_data,
+               const int istart, const int iend, const int jstart, const int jend, const int kstart, const int kend,
+               const int ii, const int jj, const int kk)
 {
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
@@ -28,7 +27,13 @@ void kernel(double * restrict at_data, double * restrict a_data, double * restri
             + grad<1>( interp<0>(b, ii) * interp<0>(a, jj), jj )
             + grad<1>( interp<0>(c, ii) * interp<0>(a, kk), kk );
       }
+}
 
+void tendency(double * restrict at_data, double * restrict a_data,
+              const double dt,
+              const int istart, const int iend, const int jstart, const int jend, const int kstart, const int kend,
+              const int ii, const int jj, const int kk)
+{
   for (int k=kstart; k<kend; ++k)
     for (int j=jstart; j<jend; ++j)
       for (int i=istart; i<iend; ++i)
@@ -55,7 +60,6 @@ void kernel(double * restrict at_data, double * restrict a_data, double * restri
       }
 }
 
-
 int main()
 {
   // Test configuration settings.
@@ -63,7 +67,7 @@ int main()
   const int jtot = 256;
   const int ktot = 256;
   const int gc   = 4;
-  const int iter = 1;
+  const int iter = 5;
 
   // Calculate the required variables.
   const int ntot = (itot+2*gc)*(jtot+2*gc)*(ktot+2*gc);
@@ -102,10 +106,14 @@ int main()
   // Execute the loop iter times.
   for (int n=0; n<iter; ++n)
   {
-    kernel(at_data, a_data, b_data, c_data, 
-           dt,
-           istart, iend, jstart, jend, kstart, kend,
-           ii, jj, kk);
+    advection(at_data, a_data, b_data, c_data, 
+              istart, iend, jstart, jend, kstart, kend,
+              ii, jj, kk);
+
+    tendency(at_data, a_data,
+             dt,
+             istart, iend, jstart, jend, kstart, kend,
+             ii, jj, kk);
   }
 
   // Print a value in the middle of the field to check whether
