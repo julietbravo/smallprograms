@@ -1,3 +1,5 @@
+#define restrict __restrict__
+
 namespace StencilBuilder
 {
   // STENCIL OPERATORS.
@@ -108,23 +110,23 @@ namespace StencilBuilder
   // Scalar class representing the scalar, whose operations expand compile time
   struct Scalar
   {
-    Scalar(double *data) : data_(data) {}
+    Scalar(double * restrict data) : data_(data) {}
 
     double& operator[](const int i) const { return data_[i]; }
 
     template<class T> void operator= (const T &expression) { data_[0] =  expression[0]; }
     template<class T> void operator+=(const T &expression) { data_[0] += expression[0]; }
 
-    double *data_;
+    double * restrict data_;
   };
 
   // Specialization to allow for constant value assignment
-  template<> void Scalar::operator= (const double &expression) { data_[0] = expression; }
+  template<> void Scalar::operator= (const double & restrict expression) { data_[0] = expression; }
 
   // Field class representing the field, whose operations expand compile time.
   struct Field
   {
-    Field(double *data,
+    Field(double * restrict data,
           const int istart, const int iend,
           const int jstart, const int jend,
           const int kstart, const int kend,
@@ -173,7 +175,7 @@ namespace StencilBuilder
     }
 
     // Pointer to the raw data.
-    double *data_;
+    double * restrict data_;
 
     // Field properties.
     const int istart_;
