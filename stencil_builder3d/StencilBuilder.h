@@ -118,6 +118,7 @@ namespace StencilBuilder
     double *data_;
   };
 
+  // Specialization to allow for constant value assignment
   template<> void Scalar::operator= (const double &expression) { data_[0] = expression; }
 
   // Field class representing the field, whose operations expand compile time.

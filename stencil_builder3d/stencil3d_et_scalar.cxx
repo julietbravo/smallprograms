@@ -3,7 +3,58 @@
 #include <cstdlib>
 #include "StencilBuilder.h"
 
+#define restrict __restrict__
+
 using namespace StencilBuilder;
+
+void kernel(double * restrict at_data, double * restrict a_data, double * restrict b_data, double * restrict c_data,
+            const double dt,
+            const int istart, const int iend, const int jstart, const int jend, const int kstart, const int kend,
+            const int ii, const int jj, const int kk)
+{
+  for (int k=kstart; k<kend; ++k)
+    for (int j=jstart; j<jend; ++j)
+      for (int i=istart; i<iend; ++i)
+      {
+        // Advection operator.
+        const int ijk = i + j*jj + k*kk;
+
+        Scalar a (& a_data[ijk]);
+        Scalar b (& b_data[ijk]);
+        Scalar c (& c_data[ijk]);
+        Scalar at(&at_data[ijk]);
+
+        at += grad<0>( interp<1>(a, ii) * interp<1>(a, ii), ii )
+            + grad<1>( interp<0>(b, ii) * interp<0>(a, jj), jj )
+            + grad<1>( interp<0>(c, ii) * interp<0>(a, kk), kk );
+      }
+
+  for (int k=kstart; k<kend; ++k)
+    for (int j=jstart; j<jend; ++j)
+      for (int i=istart; i<iend; ++i)
+      {
+        // Time integration.
+        const int ijk = i + j*jj + k*kk;
+
+        Scalar a (& a_data[ijk]);
+        Scalar at(&at_data[ijk]);
+
+        a += dt*at;
+      }
+
+  for (int k=kstart; k<kend; ++k)
+    for (int j=jstart; j<jend; ++j)
+      for (int i=istart; i<iend; ++i)
+      {
+        // Tendency reset.
+        const int ijk = i + j*jj + k*kk;
+
+        Scalar at(&at_data[ijk]);
+
+        at = 0.;
+      }
+}
+
 
 int main()
 {
@@ -12,7 +63,7 @@ int main()
   const int jtot = 256;
   const int ktot = 256;
   const int gc   = 4;
-  const int iter = 10;
+  const int iter = 1;
 
   // Calculate the required variables.
   const int ntot = (itot+2*gc)*(jtot+2*gc)*(ktot+2*gc);
@@ -51,47 +102,10 @@ int main()
   // Execute the loop iter times.
   for (int n=0; n<iter; ++n)
   {
-    for (int i=istart; i<iend; ++i)
-      for (int j=jstart; j<jend; ++j)
-        for (int k=kstart; k<kend; ++k)
-        {
-          // Advection operator.
-          const int ijk = i + j*jj + k*kk;
-
-          Scalar a (& a_data[ijk]);
-          Scalar b (& b_data[ijk]);
-          Scalar c (& c_data[ijk]);
-          Scalar at(&at_data[ijk]);
-
-          at += grad<0>( interp<1>(a, ii) * interp<1>(a, ii), ii )
-              + grad<1>( interp<0>(b, ii) * interp<0>(a, jj), jj )
-              + grad<1>( interp<0>(c, ii) * interp<0>(a, kk), kk );
-        }
-
-    for (int i=istart; i<iend; ++i)
-      for (int j=jstart; j<jend; ++j)
-        for (int k=kstart; k<kend; ++k)
-        {
-          // Time integration.
-          const int ijk = i + j*jj + k*kk;
-
-          Scalar a (& a_data[ijk]);
-          Scalar at(&at_data[ijk]);
-
-          a += dt*at;
-        }
-
-    for (int i=istart; i<iend; ++i)
-      for (int j=jstart; j<jend; ++j)
-        for (int k=kstart; k<kend; ++k)
-        {
-          // Tendency reset.
-          const int ijk = i + j*jj + k*kk;
-
-          Scalar at(&at_data[ijk]);
-
-          at = 0.;
-        }
+    kernel(at_data, a_data, b_data, c_data, 
+           dt,
+           istart, iend, jstart, jend, kstart, kend,
+           ii, jj, kk);
   }
 
   // Print a value in the middle of the field to check whether
