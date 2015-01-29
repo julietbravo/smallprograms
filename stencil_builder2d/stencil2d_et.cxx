@@ -8,14 +8,13 @@ using namespace StencilBuilder;
 int main()
 {
   // Test configuration settings.
-  const int itot = 256;
-  const int jtot = 256;
-  const int ktot = 256;
-  const int gc   = 4;
-  const int iter = 5;
+  const int itot = 2048;
+  const int jtot = 2048;
+  const int gc = 4;
+  const int niter = 100;
 
   // Initialize the grid.
-  Grid grid(itot, jtot, ktot, gc);
+  Grid grid(itot, jtot, gc);
 
   // Create fields on the grid.
   Field u (grid);
@@ -23,12 +22,12 @@ int main()
   Field ut(grid);
 
   // Initialize the fields.
-  for (int n=0; n<grid.ncells; ++n)
+  for (int ij=0; ij<grid.ijcells; ++ij)
   {
-    u[n] = 0.001 * (std::rand() % 1000) - 0.5;
-    v[n] = 0.001 * (std::rand() % 1000) - 0.5;
+    u[ij] = 0.001 * (std::rand() % 1000) - 0.5;
+    v[ij] = 0.001 * (std::rand() % 1000) - 0.5;
 
-    ut[n] = 0.;
+    ut[ij] = 0.;
   }
 
   // Define the distances in memory for the three dimensions.
@@ -38,22 +37,22 @@ int main()
   // Initialize the time step.
   const double dt = 1.e-3;
 
-  // Execute the loop iter times.
-  for (int n=0; n<iter; ++n)
+  // Execute the loop niter times.
+  for (int n=0; n<niter; ++n)
   {
     // Advection operator.
-    at += grad<0>( interp<1>(a, ii) * interp<1>(a, ii), ii )
-        + grad<1>( interp<0>(b, ii) * interp<0>(a, jj), jj );
+    ut += grad<0>( interp<1>(u, ii) * interp<1>(u, ii), ii )
+        + grad<1>( interp<0>(v, ii) * interp<0>(u, jj), jj );
 
     // Time integration.
-    a += dt*at;
+    u += dt*ut;
 
     // Tendency reset.
-    at = 0.;
+    ut = 0.;
   }
 
   // Print a value in the middle of the field.
-  std::cout << std::setprecision(8) << "a = " << a(itot/2, jtot/2) << std::endl;
+  std::cout << std::setprecision(8) << "a = " << u(itot/2, jtot/2) << std::endl;
 
   return 0;
 }

@@ -132,7 +132,7 @@ namespace StencilBuilder
 
       ~Field() { delete[] data_; }
 
-      inline double* get_data() { return data_; }
+      inline double* get_data() const { return data_; }
 
       inline double& operator[](const int i) const { return data_[i]; }
 

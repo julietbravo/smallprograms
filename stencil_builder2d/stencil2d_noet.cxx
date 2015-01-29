@@ -79,10 +79,10 @@ void tendency(double * const restrict ut, double * const restrict u,
 int main()
 {
   // Test configuration settings.
-  const int itot = 256;
-  const int jtot = 256;
+  const int itot = 2048;
+  const int jtot = 2048;
   const int gc = 4;
-  const int niter = 5;
+  const int niter = 100;
 
   // Initialize the grid.
   Grid grid(itot, jtot, gc);
