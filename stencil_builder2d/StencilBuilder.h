@@ -2,6 +2,10 @@
 
 namespace StencilBuilder
 {
+  typedef const int UnitVec[2];
+  constexpr UnitVec ivec = {1, 0};
+  constexpr UnitVec jvec = {0, 1};
+
   struct Grid
   {
     Grid(const int itot, const int jtot, const int gc) :
@@ -11,7 +15,9 @@ namespace StencilBuilder
       iend(itot+gc),
       jend(jtot+gc),
       icells(itot+2*gc),
-      ijcells((itot+2*gc)*(jtot+2*gc)) {}
+      jcells(jtot+2*gc),
+      ijcells(icells*jcells)
+    {}
 
     const int itot;
     const int jtot;
@@ -21,6 +27,7 @@ namespace StencilBuilder
     const int iend;
     const int jend;
     const int icells;
+    const int jcells;
     const int ijcells;
   };
 
@@ -28,59 +35,80 @@ namespace StencilBuilder
   // Fourth order interpolation.
   struct Interp
   {
-    static inline double apply(const double a, const double b, const double c, const double d)
+    static inline const double apply(const double a, const double b, const double c, const double d)
     { return (9./16.)*(b+c) - (1./16.)*(a+d); }
   };
 
   // Fourth order gradient.
   struct Grad
   {
-    static inline double apply(const double a, const double b, const double c, const double d)
+    static inline const double apply(const double a, const double b, const double c, const double d)
     { return (27./24.)*(c-b) - (1./24)*(d-a); }
   };
 
   // STENCIL NODE CLASS
   // Stencil node in expression tree.
-  template<int toCenter, class Inner, class Op>
+  template<int loc, class Inner, class Op, UnitVec vec>
   struct Stencil
   {
-    Stencil(const Inner& inner, const int nn) : inner_(inner), nn_(nn) {}
+    Stencil(const Inner& inner) : inner_(inner) {}
 
     const Inner& inner_;
-    const int nn_;
 
-    inline double operator[](const int i) const
+    inline const double operator()(const int i, const int j) const
     {
-      return Op::apply(inner_[i + (-2+toCenter)*nn_], inner_[i + (-1+toCenter)*nn_],
-                       inner_[i + (   toCenter)*nn_], inner_[i + ( 1+toCenter)*nn_]);
+      return Op::apply(inner_(i + vec[0]*(-2+loc), j + vec[1]*(-2+loc)),
+                       inner_(i + vec[0]*(-1+loc), j + vec[1]*(-1+loc)),
+                       inner_(i + vec[0]*(   loc), j + vec[1]*(   loc)),
+                       inner_(i + vec[0]*( 1+loc), j + vec[1]*( 1+loc)));
     }
   };
 
   // Stencil generation operator for interpolation.
-  template<int toCenter, class Inner>
-  inline Stencil<toCenter, Inner, Interp> interp(const Inner& inner, const int nn)
-  {
-    return Stencil<toCenter, Inner, Interp>(inner, nn);
-  }
+  template<class Inner>
+  inline Stencil<1, Inner, Interp, ivec> Ix(const Inner& inner)
+  { return Stencil<1, Inner, Interp, ivec>(inner); }
+
+  template<class Inner>
+  inline Stencil<1, Inner, Interp, jvec> Iy(const Inner& inner)
+  { return Stencil<1, Inner, Interp, jvec>(inner); }
+
+  template<class Inner>
+  inline Stencil<0, Inner, Interp, ivec> Ix_h(const Inner& inner)
+  { return Stencil<0, Inner, Interp, ivec>(inner); }
+
+  template<class Inner>
+  inline Stencil<0, Inner, Interp, jvec> Iy_h(const Inner& inner)
+  { return Stencil<0, Inner, Interp, jvec>(inner); }
 
   // Stencil generation operator for gradient.
-  template<int toCenter, class Inner>
-  inline Stencil<toCenter, Inner, Grad> grad(const Inner& inner, const int nn)
-  {
-    return Stencil<toCenter, Inner, Grad>(inner, nn);
-  }
+  template<class Inner>
+  inline Stencil<1, Inner, Grad, ivec> Gx(const Inner& inner)
+  { return Stencil<1, Inner, Grad, ivec>(inner); }
+
+  template<class Inner>
+  inline Stencil<1, Inner, Grad, jvec> Gy(const Inner& inner)
+  { return Stencil<1, Inner, Grad, jvec>(inner); }
+
+  template<class Inner>
+  inline Stencil<0, Inner, Grad, ivec> Gx_h(const Inner& inner)
+  { return Stencil<0, Inner, Grad, ivec>(inner); }
+
+  template<class Inner>
+  inline Stencil<0, Inner, Grad, jvec> Gy_h(const Inner& inner)
+  { return Stencil<0, Inner, Grad, jvec>(inner); }
 
   // SCALAR OPERATORS
   // Multiplication operator.
   struct Multiply
   {
-    static inline double apply(const double left, const double right) { return left*right; }
+    static inline const double apply(const double left, const double right) { return left*right; }
   };
 
   // Addition operator.
   struct Add
   {
-    static inline double apply(const double left, const double right) { return left+right; }
+    static inline const double apply(const double left, const double right) { return left+right; }
   };
 
   // OPERATOR NODE CLASS
@@ -93,7 +121,8 @@ namespace StencilBuilder
     const Left& left_;
     const Right& right_;
 
-    inline double operator[](const int i) const { return Op::apply(left_[i], right_[i]); }
+    inline const double operator()(const int i, const int j) const
+    { return Op::apply(left_(i, j), right_(i, j)); }
   };
 
   // Operator aggregation class, specialization for left scalar multiplication
@@ -105,7 +134,8 @@ namespace StencilBuilder
     const double& left_;
     const Right& right_;
 
-    inline double operator[](const int i) const { return Op::apply(left_, right_[i]); }
+    inline const double operator()(const int i, const int j) const
+    { return Op::apply(left_, right_(i, j)); }
   };
 
   // Template classes for the multiplication operator.
@@ -132,26 +162,23 @@ namespace StencilBuilder
 
       ~Field() { delete[] data_; }
 
-      inline double* get_data() const { return data_; }
+      // This function returns the raw pointer to the data.
+      double* get_data(){ return data_; }
 
-      inline double& operator[](const int i) const { return data_[i]; }
+      inline const double operator()(const int i, const int j) const
+      { return data_[i + j*grid_.icells]; }
 
-      inline double& operator()(const int i, const int j) const
+      inline double& operator()(const int i, const int j)
       { return data_[i + j*grid_.icells]; }
 
       // Assignment operator, this operator starts the inline expansion.
       template<class T>
       inline Field& operator= (const T& restrict expression)
       {
-        const int jj = grid_.icells;
-
         for (int j=grid_.jstart; j<grid_.jend; ++j)
           #pragma ivdep
           for (int i=grid_.istart; i<grid_.iend; ++i)
-          {
-            const int ij = i + j*jj;
-            data_[ij] = expression[ij];
-          }
+            (*this)(i, j) = expression(i, j);
 
         return *this;
       }
@@ -159,15 +186,10 @@ namespace StencilBuilder
       // Overload, NOT specialization, for assignment with a constant.
       inline Field& operator= (const double& restrict expression)
       {
-        const int jj = grid_.icells;
-
         for (int j=grid_.jstart; j<grid_.jend; ++j)
           #pragma ivdep
           for (int i=grid_.istart; i<grid_.iend; ++i)
-          {
-            const int ij = i + j*jj;
-            data_[ij] = expression;
-          }
+            (*this)(i, j) = expression;
 
         return *this;
       }
@@ -176,15 +198,10 @@ namespace StencilBuilder
       template<class T>
       inline Field& operator+=(const T& restrict expression)
       {
-        const int jj = grid_.icells;
-
         for (int j=grid_.jstart; j<grid_.jend; ++j)
           #pragma ivdep
           for (int i=grid_.istart; i<grid_.iend; ++i)
-          {
-            const int ij = i + j*jj;
-            data_[ij] += expression[ij];
-          }
+            (*this)(i, j) += expression(i, j);
 
         return *this;
       }

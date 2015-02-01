@@ -8,8 +8,8 @@ using namespace StencilBuilder;
 int main()
 {
   // Test configuration settings.
-  const int itot = 2048;
-  const int jtot = 2048;
+  const int itot = 1024;
+  const int jtot = 1024;
   const int gc = 4;
   const int niter = 100;
 
@@ -22,17 +22,14 @@ int main()
   Field ut(grid);
 
   // Initialize the fields.
-  for (int ij=0; ij<grid.ijcells; ++ij)
-  {
-    u[ij] = 0.001 * (std::rand() % 1000) - 0.5;
-    v[ij] = 0.001 * (std::rand() % 1000) - 0.5;
+  for (int j=0; j<grid.jcells; ++j)
+    for (int i=0; i<grid.icells; ++i)
+    {
+      u(i,j) = 0.001 * (std::rand() % 1000) - 0.5;
+      v(i,j) = 0.001 * (std::rand() % 1000) - 0.5;
 
-    ut[ij] = 0.;
-  }
-
-  // Define the distances in memory for the three dimensions.
-  const int ii = 1;
-  const int jj = grid.icells;
+      ut(i,j) = 0.;
+    }
 
   // Initialize the time step.
   const double dt = 1.e-3;
@@ -41,8 +38,8 @@ int main()
   for (int n=0; n<niter; ++n)
   {
     // Advection operator.
-    ut += grad<0>( interp<1>(u, ii) * interp<1>(u, ii), ii )
-        + grad<1>( interp<0>(v, ii) * interp<0>(u, jj), jj );
+    ut += Gx_h( Ix  (u) * Ix  (u) )
+        + Gy  ( Ix_h(v) * Iy_h(u) );
 
     // Time integration.
     u += dt*ut;
