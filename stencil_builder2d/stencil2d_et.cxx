@@ -16,20 +16,14 @@ int main()
   // Initialize the grid.
   Grid grid(itot, jtot, gc);
 
-  // Create fields on the grid.
+  // Create fields on the grid, default value is 0.
   Field u (grid);
   Field v (grid);
   Field ut(grid);
 
-  // Initialize the fields.
-  for (int j=0; j<grid.jcells; ++j)
-    for (int i=0; i<grid.icells; ++i)
-    {
-      u(i,j) = 0.001 * (std::rand() % 1000) - 0.5;
-      v(i,j) = 0.001 * (std::rand() % 1000) - 0.5;
-
-      ut(i,j) = 0.;
-    }
+  // Randomize the u and v field.
+  u.randomize();
+  v.randomize();
 
   // Initialize the time step.
   const double dt = 1.e-3;

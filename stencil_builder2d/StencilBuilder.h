@@ -158,12 +158,24 @@ namespace StencilBuilder
     public:
       Field(const Grid& grid) :
         grid_(grid),
-        data_(new double[grid_.ijcells]) {}
+        data_(new double[grid_.ijcells])
+      {
+        for (int ij=0; ij<grid_.ijcells; ++ij)
+          data_[ij] = 0.;
+      }
 
       ~Field() { delete[] data_; }
 
       // This function returns the raw pointer to the data.
       double* get_data(){ return data_; }
+
+      void randomize()
+      {
+        // Initialize the fields.
+        for (int j=0; j<grid_.jcells; ++j)
+          for (int i=0; i<grid_.icells; ++i)
+            (*this)(i,j) = 0.001 * (std::rand() % 1000) - 0.5;
+      }
 
       inline const double operator()(const int i, const int j) const
       { return data_[i + j*grid_.icells]; }
