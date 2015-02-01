@@ -188,7 +188,7 @@ namespace StencilBuilder
       inline Field& operator= (const T& restrict expression)
       {
         for (int j=grid_.jstart; j<grid_.jend; ++j)
-          #pragma ivdep
+          #pragma GCC ivdep
           for (int i=grid_.istart; i<grid_.iend; ++i)
             (*this)(i, j) = expression(i, j);
 
@@ -199,7 +199,7 @@ namespace StencilBuilder
       inline Field& operator= (const double& restrict expression)
       {
         for (int j=grid_.jstart; j<grid_.jend; ++j)
-          #pragma ivdep
+          #pragma GCC ivdep
           for (int i=grid_.istart; i<grid_.iend; ++i)
             (*this)(i, j) = expression;
 
@@ -211,7 +211,7 @@ namespace StencilBuilder
       inline Field& operator+=(const T& restrict expression)
       {
         for (int j=grid_.jstart; j<grid_.jend; ++j)
-          #pragma ivdep
+          #pragma GCC ivdep
           for (int i=grid_.istart; i<grid_.iend; ++i)
             (*this)(i, j) += expression(i, j);
 
