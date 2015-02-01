@@ -39,15 +39,16 @@ inline Node<Left, Right> operator+(const Left& left, const Right& right)
 
 int main()
 {
-  Field<0> a(0.123);
+  Field<0> a(2.123);
   Field<1> b(3.343);
-  Field<0> c(0.0);
+  Field<0> c(11.12);
+  Field<0> d(0.0);
 
-  c = a + b;
-  std::cout << c() << std::endl;
+  d = a + b + c;
+  std::cout << d() << std::endl;
 
-  c() = 16;
-  std::cout << c() << std::endl;
+  d() = 16;
+  std::cout << d() << std::endl;
 
   return 0;
 }
