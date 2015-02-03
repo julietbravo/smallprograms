@@ -1,3 +1,7 @@
+// StencilBuilder example
+// Copyright (c) Chiel van Heerwaarden, 2015
+// chielvanheerwaarden@gmail.com
+
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
