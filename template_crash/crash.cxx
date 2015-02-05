@@ -32,24 +32,6 @@ template<class Inner>
 inline Interp<0, Inner> Ix_h(const Inner& inner)
 { return Interp<0, Inner>(inner); }
 
-template<class Left, class Right>
-struct Multiply
-{
-  Multiply(const Left& left, const Right& right) : left_(left), right_(right) {}
-
-  const Left& left_;
-  const Right& right_;
-
-  inline double operator()(const int i) const
-  { return left_(i) * right_(i); }
-};
-
-template<class Left, class Right>
-inline Multiply<Left, Right> operator*(const Left& left, const Right& right)
-{
-  return Multiply<Left, Right>(left, right);
-}
-
 class Field
 {
   public:
@@ -85,11 +67,11 @@ int main()
   Field ut(grid);
 
   // Like this it crashes
-  auto expression = Ix_h( Ix  (u) * Ix  (u) );
+  auto expression = Ix_h( Ix(u) );
   ut += expression;
 
   // But like this it does not
-  ut += Ix_h( Ix  (u) * Ix  (u) );
+  ut += Ix_h( Ix(u) );
 
   return 0;
 }
