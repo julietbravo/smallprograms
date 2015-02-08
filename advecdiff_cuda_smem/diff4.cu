@@ -296,7 +296,7 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
         const int jjs3 = 3*blockxpad;
 
         double akm3, akm2, akm1, akp1, akp2, akp3;
-        int ijk, ijks;
+        int ijk;
 
         // Read first vertical stencil
 	ijk  = i + j*icells + kstart*ijcells;
@@ -307,10 +307,10 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
         akp2 = a[ijk+kk2];
         akp3 = a[ijk+kk3];
 
+        const int ijks = (tx+ngc) + (ty+ngc)*blockxpad;
         for(int k=kstart; k<kend; ++k)
         {
             ijk  = i + j*icells + k*ijcells; // index in global memory
-            ijks = (tx+ngc) + (ty+ngc)*blockxpad; // Same location in 2d shared mem
 
             read_smem(as, a, tx, ty, ijk, ijks, jj3, jjs3, ngc);
             __syncthreads();
