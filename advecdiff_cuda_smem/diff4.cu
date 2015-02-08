@@ -289,6 +289,7 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
         const int kk1 = 1*ijcells;
         const int kk2 = 2*ijcells;
         const int kk3 = 3*ijcells;
+        const int kk4 = 4*ijcells;
 
         const int jjs1 = 1*blockxpad;
         const int jjs2 = 2*blockxpad;
@@ -329,7 +330,7 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
                 akm1 = as[ijks];
                 akp1 = akp2;
                 akp2 = akp3;
-                akp3 = a[ijk+4*ijcells];
+                akp3 = a[ijk+kk4];
             }
         }
     }
@@ -415,7 +416,7 @@ int main()
     // CUDA thread blocks
     //
     const int blocki = 32;
-    const int blockj = 16;
+    const int blockj = 8;
     const int gridi  = itot/blocki + (itot%blocki > 0);
     const int gridj  = jtot/blockj + (jtot%blockj > 0);
     dim3 gridGPU  (gridi, gridj, ktot);
