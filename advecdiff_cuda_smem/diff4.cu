@@ -95,9 +95,8 @@ __global__ void diff_gpu_s2d(double * const __restrict__ at, const double * cons
 
     if(i < iend && j < jend && k < kend)
     {
-        // 1:1 mapping of ijk to ijks
         const int ijk  = i + j*icells + k*ijcells; // index in global memory
-        const int ijks = (tx+ngc) + (ty+ngc)*(blockDim.x+2*ngc);
+        const int ijks = (tx+ngc) + (ty+ngc)*blockxpad; // Same location in 2d shared mem
 
         const int ii1 = 1;
         const int ii2 = 2;
@@ -127,15 +126,9 @@ __global__ void diff_gpu_s2d(double * const __restrict__ at, const double * cons
     }
 }
 
-
-double diff(const double * const __restrict__ a, const double * const __restrict__ b, const int n)
-{
-    double d=0;
-    for(int i=0; i<n; ++i)
-        d += a[i]-b[i];
-    return d;
-}
-
+/* 
+Get max difference between two fields
+*/
 double maxdiff(const double * const __restrict__ a, const double * const __restrict__ b, const int n)
 {
     double maxdiff=0;
@@ -147,21 +140,6 @@ double maxdiff(const double * const __restrict__ a, const double * const __restr
             maxdiff = diff;
     }
     return maxdiff;
-}
-
-void printfield(const double * const __restrict__ a, const int icells, const int jcells, const int k)
-{
-    int ijk;
-    for(int i=0; i<icells; ++i)
-    {
-        for(int j=0; j<jcells; ++j)
-        {
-            ijk = i + j*icells + k*icells*jcells;
-            printf("%+5.2e ",a[ijk]);
-        }
-        printf("\n");
-    }
-    printf("\n");
 }
 
 int main()
@@ -177,7 +155,7 @@ int main()
     const int jtot = 256;
     const int ktot = 256;
     const int gc   = 3;
-    const int iter = 10;
+    const int iter = 40;
     
     //
     // Calculate the required variables.
@@ -227,7 +205,7 @@ int main()
     //
     // CUDA thread blocks
     //
-    const int blocki = 16;
+    const int blocki = 32;
     const int blockj = 16;
     const int gridi  = itot/blocki + (itot%blocki > 0);
     const int gridj  = jtot/blockj + (jtot%blockj > 0);
@@ -246,6 +224,8 @@ int main()
     // Execute kernels
     //
     //////////////////// CPU //////////////////////////
+    diff_cpu (at,  a,  dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
+
     cudaEventRecord(startEvent, 0);
     for(int n=0; n<iter; ++n)
     {
@@ -257,14 +237,19 @@ int main()
     printf("CPU; elapsed=%f [ms]\n",dt1);
  
     //////////////////// GPU //////////////////////////
+    cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte);
+
+    diff_gpu_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
+             (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp, gc);
+
     cudaEventRecord(startEvent, 0);
     for(int n=0; n<iter; ++n)
     {
-       //diff_gpu<<<gridGPU, blockGPU>>> 
-       //         (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp);
+        diff_gpu<<<gridGPU, blockGPU>>> 
+                 (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp);
 
-       diff_gpu_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
-                (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp, gc);
+        //diff_gpu_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
+        //         (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp, gc);
     }
     cudaEventRecord(stopEvent, 0);
     cudaEventSynchronize(stopEvent);
@@ -276,9 +261,6 @@ int main()
     cudaMemcpy2D(tmp1, icells*sizeof(double), &atd[mo], icellsp*sizeof(double), icells*sizeof(double), jcells*kcells, cudaMemcpyDeviceToHost);
 
     printf("GPU; elapsed=%f [ms], speedup=%f, maxdiff=%e \n",dt2,dt1/dt2,maxdiff(at,tmp1,ncells));
-
-    //printfield(at,icells,jcells,3);
-    //printfield(tmp1,icells,jcells,3);
 
     return 0;
 }
