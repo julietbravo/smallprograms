@@ -296,9 +296,10 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
         const int jjs3 = 3*blockxpad;
 
         double akm3, akm2, akm1, akp1, akp2, akp3;
+        int ijk, ijks;
 
         // Read first vertical stencil
-	const int ijk  = i + j*icells + kstart*ijcells;
+	ijk  = i + j*icells + kstart*ijcells;
         akm3 = a[ijk-kk3];
         akm2 = a[ijk-kk2];
         akm1 = a[ijk-kk1];
@@ -308,15 +309,11 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
 
         for(int k=kstart; k<kend; ++k)
         {
-            const int ijk  = i + j*icells + k*ijcells; // index in global memory
-            const int ijks = (tx+ngc) + (ty+ngc)*blockxpad; // Same location in 2d shared mem
+            ijk  = i + j*icells + k*ijcells; // index in global memory
+            ijks = (tx+ngc) + (ty+ngc)*blockxpad; // Same location in 2d shared mem
 
             read_smem(as, a, tx, ty, ijk, ijks, jj3, jjs3, ngc);
             __syncthreads();
-
-	    //at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], as[ijks], as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
-	    //        +  visc * dg4(as[ijks-jjs3], as[ijks-jjs2], as[ijks-jjs1], as[ijks], as[ijks+jjs1], as[ijks+jjs2], as[ijks+jjs3])*dyidyi
-	    //        +  visc * dg4(a [ijk-kk3],    a[ijk-kk2],   a [ijk-kk1],   as[ijks], a [ijk+kk1],   a [ijk+kk2],   a [ijk+kk3])*dzidzi;
 
 	    at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], as[ijks], as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
 	            +  visc * dg4(as[ijks-jjs3], as[ijks-jjs2], as[ijks-jjs1], as[ijks], as[ijks+jjs1], as[ijks+jjs2], as[ijks+jjs3])*dyidyi
