@@ -197,6 +197,22 @@ __global__ void diff_gpu_2d_s2d(double * const __restrict__ at, const double * c
     }
 }
 
+__device__ void read_smem(double * as, const double * const __restrict__ a,
+                          const int tx, const int ty, const int ijk, const int ijks, const int jj3, const int jjs3, const int ngc)
+{
+    as[ijks] = a[ijk];
+
+    if(ty < ngc)
+        as[ijks-jjs3] = a[ijk-jj3];
+    if(ty >= blockDim.y-ngc)
+        as[ijks+jjs3] = a[ijk+jj3];
+
+    if(tx < ngc)
+        as[ijks-ngc] = a[ijk-ngc];
+    if(tx >= blockDim.x-ngc)
+        as[ijks+ngc] = a[ijk+ngc];
+}
+
 /* 
 4th order diffusion (3d), 2D smem tile
 */
@@ -235,23 +251,12 @@ __global__ void diff_gpu_2d_s2d(double * const __restrict__ at, const double * c
 //        const int jjs2 = 2*blockxpad;
 //        const int jjs3 = 3*blockxpad;
 //
-//        as[ijks] = a[ijk];
-//
-//        if(ty < ngc)
-//            as[ijks-jjs3] = a[ijk-jj3];
-//        if(ty >= blockDim.y-ngc)
-//            as[ijks+jjs3] = a[ijk+jj3];
-//
-//        if(tx < ngc)
-//            as[ijks-ii3] = a[ijk-ii3];
-//        if(tx >= blockDim.x-ngc)
-//            as[ijks+ii3] = a[ijk+ii3];
-//
+//        read_smem(as, a, tx, ty, ijk, ijks, jj3, jjs3, ngc);
 //        __syncthreads();
 //
-//	at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], as[ijks], as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
-//	        +  visc * dg4(as[ijks-jjs3], as[ijks-jjs2], as[ijks-jjs1], as[ijks], as[ijks+jjs1], as[ijks+jjs2], as[ijks+jjs3])*dyidyi
-//	        +  visc * dg4(a [ijk-kk3],    a[ijk-kk2],   a [ijk-kk1],   as[ijks], a [ijk+kk1],   a [ijk+kk2],   a [ijk+kk3])*dzidzi;
+//	  at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], as[ijks], as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
+//	          +  visc * dg4(as[ijks-jjs3], as[ijks-jjs2], as[ijks-jjs1], as[ijks], as[ijks+jjs1], as[ijks+jjs2], as[ijks+jjs3])*dyidyi
+//	          +  visc * dg4(a [ijk-kk3],    a[ijk-kk2],   a [ijk-kk1],   as[ijks], a [ijk+kk1],   a [ijk+kk2],   a [ijk+kk3])*dzidzi;
 //    }
 //}
 
@@ -271,7 +276,6 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
     const int ty = threadIdx.y;
     const int i  = blockIdx.x*blockDim.x + threadIdx.x + istart;
     const int j  = blockIdx.y*blockDim.y + threadIdx.y + jstart;
-    //const int k  = blockIdx.z + kstart;
     const int blockxpad = blockDim.x+2*ngc;
 
     const double visc = 0.1;
@@ -297,16 +301,7 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
 
             as[ijks] = a[ijk];
 
-            if(ty < ngc)
-                as[ijks-jjs3] = a[ijk-jj3];
-            if(ty >= blockDim.y-ngc)
-                as[ijks+jjs3] = a[ijk+jj3];
-
-            if(tx < ngc)
-                as[ijks-ii3] = a[ijk-ii3];
-            if(tx >= blockDim.x-ngc)
-                as[ijks+ii3] = a[ijk+ii3];
-
+            read_smem(as, a, tx, ty, ijk, ijks, jj3, jjs3, ngc);
             __syncthreads();
 
 	    at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], as[ijks], as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
@@ -315,7 +310,6 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
         }
     }
 }
-
 
 /* 
 Get max difference between two fields
@@ -346,7 +340,7 @@ int main()
     const int jtot = 256;
     const int ktot = 256;
     const int gc   = 3;
-    const int iter = 40;
+    const int iter = 50;
     
     //
     // Calculate the required variables.
