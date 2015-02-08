@@ -12,12 +12,12 @@ __host__ __device__ inline double dg4(const double v1, const double v2, const do
 /* 
 4th order diffusion, similar to CPU implementation MicroHH
 */
-void diff_cpu(double * const __restrict__ at, const double * const __restrict__ a,
-              const double dxidxi, const double dyidyi, const double dzidzi,
-              const int istart, const int iend, 
-              const int jstart, const int jend, 
-              const int kstart, const int kend, 
-              const int icells, const int ijcells)
+void diff_cpu_2d(double * const __restrict__ at, const double * const __restrict__ a,
+                 const double dxidxi, const double dyidyi, const double dzidzi,
+                 const int istart, const int iend, 
+                 const int jstart, const int jend, 
+                 const int kstart, const int kend, 
+                 const int icells, const int ijcells)
 {
     const int ii1 = 1;
     const int ii2 = 2;
@@ -41,14 +41,49 @@ void diff_cpu(double * const __restrict__ at, const double * const __restrict__ 
 }
 
 /* 
+4th order diffusion, similar to CPU implementation MicroHH
+*/
+void diff_cpu_3d(double * const __restrict__ at, const double * const __restrict__ a,
+                 const double dxidxi, const double dyidyi, const double dzidzi,
+                 const int istart, const int iend, 
+                 const int jstart, const int jend, 
+                 const int kstart, const int kend, 
+                 const int icells, const int ijcells)
+{
+    const int ii1 = 1;
+    const int ii2 = 2;
+    const int ii3 = 3;
+    const int jj1 = 1*icells;
+    const int jj2 = 2*icells;
+    const int jj3 = 3*icells;
+    const int kk1 = 1*ijcells;
+    const int kk2 = 2*ijcells;
+    const int kk3 = 3*ijcells;
+
+    const double visc = 0.1;
+
+    for (int k=kstart; k<kend; ++k)
+        for (int j=jstart; j<jend; ++j)
+            #pragma ivdep
+            for (int i=istart; i<iend; ++i)
+            {
+                const int ijk = i + j*icells + k*ijcells;
+
+                at[ijk] += visc * dg4(a[ijk-ii3], a[ijk-ii2], a[ijk-ii1], a[ijk], a[ijk+ii1], a[ijk+ii2], a[ijk+ii3])*dxidxi
+                        +  visc * dg4(a[ijk-jj3], a[ijk-jj2], a[ijk-jj1], a[ijk], a[ijk+jj1], a[ijk+jj2], a[ijk+jj3])*dyidyi
+                        +  visc * dg4(a[ijk-kk3], a[ijk-kk2], a[ijk-kk1], a[ijk], a[ijk+kk1], a[ijk+kk2], a[ijk+kk3])*dzidzi;
+            }
+}
+
+/* 
 4th order diffusion, no shared memory use
 */
-__global__ void diff_gpu(double * const __restrict__ at, const double * const __restrict__ a,
-                         const double dxidxi, const double dyidyi, const double dzidzi,
-                         const int istart, const int iend, 
-                         const int jstart, const int jend, 
-                         const int kstart, const int kend, 
-                         const int icells, const int ijcells)
+__global__ void diff_gpu_2d(double * const __restrict__ at, const double * const __restrict__ a,
+                            const double dxidxi, const double dyidyi, const double dzidzi,
+                            const int istart, const int iend, 
+                            const int jstart, const int jend, 
+                            const int kstart, const int kend, 
+                            const int icells, const int ijcells)
 {
     const int i = blockIdx.x*blockDim.x + threadIdx.x + istart;
     const int j = blockIdx.y*blockDim.y + threadIdx.y + jstart;
@@ -73,14 +108,50 @@ __global__ void diff_gpu(double * const __restrict__ at, const double * const __
 }
 
 /* 
+4th order diffusion, no shared memory use
+*/
+__global__ void diff_gpu_3d(double * const __restrict__ at, const double * const __restrict__ a,
+                            const double dxidxi, const double dyidyi, const double dzidzi,
+                            const int istart, const int iend, 
+                            const int jstart, const int jend, 
+                            const int kstart, const int kend, 
+                            const int icells, const int ijcells)
+{
+    const int i = blockIdx.x*blockDim.x + threadIdx.x + istart;
+    const int j = blockIdx.y*blockDim.y + threadIdx.y + jstart;
+    const int k = blockIdx.z + kstart;
+
+    const double visc = 0.1;
+
+    if(i < iend && j < jend && k < kend)
+    {
+        const int ijk = i + j*icells + k*ijcells;
+
+        const int ii1 = 1;
+        const int ii2 = 2;
+        const int ii3 = 3;
+        const int jj1 = 1*icells;
+        const int jj2 = 2*icells;
+        const int jj3 = 3*icells;
+        const int kk1 = 1*ijcells;
+        const int kk2 = 2*ijcells;
+        const int kk3 = 3*ijcells;
+
+	at[ijk] += visc * dg4(a[ijk-ii3], a[ijk-ii2], a[ijk-ii1], a[ijk], a[ijk+ii1], a[ijk+ii2], a[ijk+ii3])*dxidxi
+	        +  visc * dg4(a[ijk-jj3], a[ijk-jj2], a[ijk-jj1], a[ijk], a[ijk+jj1], a[ijk+jj2], a[ijk+jj3])*dyidyi
+	        +  visc * dg4(a[ijk-kk3], a[ijk-kk2], a[ijk-kk1], a[ijk], a[ijk+kk1], a[ijk+kk2], a[ijk+kk3])*dzidzi;
+    }
+}
+
+/* 
 4th order diffusion, 2D smem tile
 */
-__global__ void diff_gpu_s2d(double * const __restrict__ at, const double * const __restrict__ a,
-                             const double dxidxi, const double dyidyi, const double dzidzi,
-                             const int istart, const int iend, 
-                             const int jstart, const int jend, 
-                             const int kstart, const int kend, 
-                             const int icells, const int ijcells, const int ngc)
+__global__ void diff_gpu_2d_s2d(double * const __restrict__ at, const double * const __restrict__ a,
+                                const double dxidxi, const double dyidyi, const double dzidzi,
+                                const int istart, const int iend, 
+                                const int jstart, const int jend, 
+                                const int kstart, const int kend, 
+                                const int icells, const int ijcells, const int ngc)
 {
     extern __shared__ double as[]; 
 
@@ -224,12 +295,11 @@ int main()
     // Execute kernels
     //
     //////////////////// CPU //////////////////////////
-    diff_cpu (at,  a,  dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
-
     cudaEventRecord(startEvent, 0);
-    for(int n=0; n<iter; ++n)
+    for(int n=0; n<iter+1; ++n) // iter+1 since GPU version is warmed up with one call
     {
-       diff_cpu (at,  a,  dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
+       //diff_cpu_2d(at,  a,  dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
+       diff_cpu_3d(at,  a,  dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
     }
     cudaEventRecord(stopEvent, 0);
     cudaEventSynchronize(stopEvent);
@@ -239,16 +309,23 @@ int main()
     //////////////////// GPU //////////////////////////
     cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte);
 
-    diff_gpu_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
-             (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp, gc);
+    //diff_gpu_2d<<<gridGPU, blockGPU>>> 
+    //         (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp);
+    diff_gpu_3d<<<gridGPU, blockGPU>>> 
+             (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp);
+    //diff_gpu_2d_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
+    //         (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp, gc);
 
     cudaEventRecord(startEvent, 0);
     for(int n=0; n<iter; ++n)
     {
-        diff_gpu<<<gridGPU, blockGPU>>> 
+        //diff_gpu_2d<<<gridGPU, blockGPU>>> 
+        //         (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp);
+
+        diff_gpu_3d<<<gridGPU, blockGPU>>> 
                  (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp);
 
-        //diff_gpu_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
+        //diff_gpu_2d_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
         //         (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp, gc);
     }
     cudaEventRecord(stopEvent, 0);
