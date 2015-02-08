@@ -200,6 +200,64 @@ __global__ void diff_gpu_2d_s2d(double * const __restrict__ at, const double * c
 /* 
 4th order diffusion (3d), 2D smem tile
 */
+//__global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * const __restrict__ a,
+//                                const double dxidxi, const double dyidyi, const double dzidzi,
+//                                const int istart, const int iend, 
+//                                const int jstart, const int jend, 
+//                                const int kstart, const int kend, 
+//                                const int icells, const int ijcells, const int ngc)
+//{
+//    extern __shared__ double as[]; 
+//
+//    const int tx = threadIdx.x;
+//    const int ty = threadIdx.y;
+//    const int i  = blockIdx.x*blockDim.x + threadIdx.x + istart;
+//    const int j  = blockIdx.y*blockDim.y + threadIdx.y + jstart;
+//    const int k  = blockIdx.z + kstart;
+//    const int blockxpad = blockDim.x+2*ngc;
+//
+//    const double visc = 0.1;
+//
+//    if(i < iend && j < jend && k < kend)
+//    {
+//        const int ijk  = i + j*icells + k*ijcells; // index in global memory
+//        const int ijks = (tx+ngc) + (ty+ngc)*blockxpad; // Same location in 2d shared mem
+//
+//        const int ii1 = 1;
+//        const int ii2 = 2;
+//        const int ii3 = 3;
+//        const int jj3 = 3*icells;
+//        const int kk1 = 1*ijcells;
+//        const int kk2 = 2*ijcells;
+//        const int kk3 = 3*ijcells;
+//
+//        const int jjs1 = 1*blockxpad;
+//        const int jjs2 = 2*blockxpad;
+//        const int jjs3 = 3*blockxpad;
+//
+//        as[ijks] = a[ijk];
+//
+//        if(ty < ngc)
+//            as[ijks-jjs3] = a[ijk-jj3];
+//        if(ty >= blockDim.y-ngc)
+//            as[ijks+jjs3] = a[ijk+jj3];
+//
+//        if(tx < ngc)
+//            as[ijks-ii3] = a[ijk-ii3];
+//        if(tx >= blockDim.x-ngc)
+//            as[ijks+ii3] = a[ijk+ii3];
+//
+//        __syncthreads();
+//
+//	at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], as[ijks], as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
+//	        +  visc * dg4(as[ijks-jjs3], as[ijks-jjs2], as[ijks-jjs1], as[ijks], as[ijks+jjs1], as[ijks+jjs2], as[ijks+jjs3])*dyidyi
+//	        +  visc * dg4(a [ijk-kk3],    a[ijk-kk2],   a [ijk-kk1],   as[ijks], a [ijk+kk1],   a [ijk+kk2],   a [ijk+kk3])*dzidzi;
+//    }
+//}
+
+/* 
+4th order diffusion (3d), 2D smem tile
+*/
 __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * const __restrict__ a,
                                 const double dxidxi, const double dyidyi, const double dzidzi,
                                 const int istart, const int iend, 
@@ -213,16 +271,13 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
     const int ty = threadIdx.y;
     const int i  = blockIdx.x*blockDim.x + threadIdx.x + istart;
     const int j  = blockIdx.y*blockDim.y + threadIdx.y + jstart;
-    const int k  = blockIdx.z + kstart;
+    //const int k  = blockIdx.z + kstart;
     const int blockxpad = blockDim.x+2*ngc;
 
     const double visc = 0.1;
 
-    if(i < iend && j < jend && k < kend)
+    if(i < iend && j < jend)
     {
-        const int ijk  = i + j*icells + k*ijcells; // index in global memory
-        const int ijks = (tx+ngc) + (ty+ngc)*blockxpad; // Same location in 2d shared mem
-
         const int ii1 = 1;
         const int ii2 = 2;
         const int ii3 = 3;
@@ -235,23 +290,29 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
         const int jjs2 = 2*blockxpad;
         const int jjs3 = 3*blockxpad;
 
-        as[ijks] = a[ijk];
+        for(int k=kstart; k<kend; ++k)
+        {
+            const int ijk  = i + j*icells + k*ijcells; // index in global memory
+            const int ijks = (tx+ngc) + (ty+ngc)*blockxpad; // Same location in 2d shared mem
 
-        if(ty < ngc)
-            as[ijks-jjs3] = a[ijk-jj3];
-        if(ty >= blockDim.y-ngc)
-            as[ijks+jjs3] = a[ijk+jj3];
+            as[ijks] = a[ijk];
 
-        if(tx < ngc)
-            as[ijks-ii3] = a[ijk-ii3];
-        if(tx >= blockDim.x-ngc)
-            as[ijks+ii3] = a[ijk+ii3];
+            if(ty < ngc)
+                as[ijks-jjs3] = a[ijk-jj3];
+            if(ty >= blockDim.y-ngc)
+                as[ijks+jjs3] = a[ijk+jj3];
 
-        __syncthreads();
+            if(tx < ngc)
+                as[ijks-ii3] = a[ijk-ii3];
+            if(tx >= blockDim.x-ngc)
+                as[ijks+ii3] = a[ijk+ii3];
 
-	at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], as[ijks], as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
-	        +  visc * dg4(as[ijks-jjs3], as[ijks-jjs2], as[ijks-jjs1], as[ijks], as[ijks+jjs1], as[ijks+jjs2], as[ijks+jjs3])*dyidyi
-	        +  visc * dg4(a [ijk-kk3],    a[ijk-kk2],   a [ijk-kk1],   as[ijks], a [ijk+kk1],   a [ijk+kk2],   a [ijk+kk3])*dzidzi;
+            __syncthreads();
+
+	    at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], as[ijks], as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
+	            +  visc * dg4(as[ijks-jjs3], as[ijks-jjs2], as[ijks-jjs1], as[ijks], as[ijks+jjs1], as[ijks+jjs2], as[ijks+jjs3])*dyidyi
+	            +  visc * dg4(a [ijk-kk3],    a[ijk-kk2],   a [ijk-kk1],   as[ijks], a [ijk+kk1],   a [ijk+kk2],   a [ijk+kk3])*dzidzi;
+        }
     }
 }
 
@@ -339,7 +400,8 @@ int main()
     const int blockj = 16;
     const int gridi  = itot/blocki + (itot%blocki > 0);
     const int gridj  = jtot/blockj + (jtot%blockj > 0);
-    dim3 gridGPU (gridi, gridj, ktot);
+    dim3 gridGPU  (gridi, gridj, ktot);
+    dim3 gridGPU2d(gridi, gridj, 1);
     dim3 blockGPU(blocki, blockj, 1);
 
     // 
@@ -380,7 +442,7 @@ int main()
         //diff_gpu_2d_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
         //         (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp, gc);
 
-        diff_gpu_3d_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
+        diff_gpu_3d_s2d<<<gridGPU2d, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
                  (&atd[mo], &ad[mo], dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icellsp, ijcellsp, gc);
     }
     cudaEventRecord(stopEvent, 0);
