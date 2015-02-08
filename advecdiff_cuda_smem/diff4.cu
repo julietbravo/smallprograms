@@ -299,8 +299,6 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
             const int ijk  = i + j*icells + k*ijcells; // index in global memory
             const int ijks = (tx+ngc) + (ty+ngc)*blockxpad; // Same location in 2d shared mem
 
-            as[ijks] = a[ijk];
-
             read_smem(as, a, tx, ty, ijk, ijks, jj3, jjs3, ngc);
             __syncthreads();
 
