@@ -216,53 +216,6 @@ __device__ void read_smem(double * as, const double * const __restrict__ a,
 /* 
 4th order diffusion (3d), 2D smem tile
 */
-//__global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * const __restrict__ a,
-//                                const double dxidxi, const double dyidyi, const double dzidzi,
-//                                const int istart, const int iend, 
-//                                const int jstart, const int jend, 
-//                                const int kstart, const int kend, 
-//                                const int icells, const int ijcells, const int ngc)
-//{
-//    extern __shared__ double as[]; 
-//
-//    const int tx = threadIdx.x;
-//    const int ty = threadIdx.y;
-//    const int i  = blockIdx.x*blockDim.x + threadIdx.x + istart;
-//    const int j  = blockIdx.y*blockDim.y + threadIdx.y + jstart;
-//    const int k  = blockIdx.z + kstart;
-//    const int blockxpad = blockDim.x+2*ngc;
-//
-//    const double visc = 0.1;
-//
-//    if(i < iend && j < jend && k < kend)
-//    {
-//        const int ijk  = i + j*icells + k*ijcells; // index in global memory
-//        const int ijks = (tx+ngc) + (ty+ngc)*blockxpad; // Same location in 2d shared mem
-//
-//        const int ii1 = 1;
-//        const int ii2 = 2;
-//        const int ii3 = 3;
-//        const int jj3 = 3*icells;
-//        const int kk1 = 1*ijcells;
-//        const int kk2 = 2*ijcells;
-//        const int kk3 = 3*ijcells;
-//
-//        const int jjs1 = 1*blockxpad;
-//        const int jjs2 = 2*blockxpad;
-//        const int jjs3 = 3*blockxpad;
-//
-//        read_smem(as, a, tx, ty, ijk, ijks, jj3, jjs3, ngc);
-//        __syncthreads();
-//
-//	  at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], as[ijks], as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
-//	          +  visc * dg4(as[ijks-jjs3], as[ijks-jjs2], as[ijks-jjs1], as[ijks], as[ijks+jjs1], as[ijks+jjs2], as[ijks+jjs3])*dyidyi
-//	          +  visc * dg4(a [ijk-kk3],    a[ijk-kk2],   a [ijk-kk1],   as[ijks], a [ijk+kk1],   a [ijk+kk2],   a [ijk+kk3])*dzidzi;
-//    }
-//}
-
-/* 
-4th order diffusion (3d), 2D smem tile
-*/
 __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * const __restrict__ a,
                                 const double dxidxi, const double dyidyi, const double dzidzi,
                                 const int istart, const int iend, 
@@ -295,14 +248,15 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
         const int jjs2 = 2*blockxpad;
         const int jjs3 = 3*blockxpad;
 
-        double akm3, akm2, akm1, akp1, akp2, akp3;
+        double akm3, akm2, akm1, aijk, akp1, akp2, akp3;
         int ijk;
 
-        // Read first vertical stencil
+        // Read first vertical stencil from global memory
 	ijk  = i + j*icells + kstart*ijcells;
         akm3 = a[ijk-kk3];
         akm2 = a[ijk-kk2];
         akm1 = a[ijk-kk1];
+        aijk = a[ijk    ];
         akp1 = a[ijk+kk1];
         akp2 = a[ijk+kk2];
         akp3 = a[ijk+kk3];
@@ -312,23 +266,34 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
         {
             ijk  = i + j*icells + k*ijcells; // index in global memory
 
-            read_smem(as, a, tx, ty, ijk, ijks, jj3, jjs3, ngc);
+            //read_smem(as, a, tx, ty, ijk, ijks, jj3, jjs3, ngc);
+            as[ijks] = aijk;
+
+            if(ty < ngc)
+                as[ijks-jjs3] = a[ijk-jj3];
+            if(ty >= blockDim.y-ngc)
+                as[ijks+jjs3] = a[ijk+jj3];
+
+            if(tx < ngc)
+                as[ijks-ngc] = a[ijk-ngc];
+            if(tx >= blockDim.x-ngc)
+                as[ijks+ngc] = a[ijk+ngc];
+
             __syncthreads();
 
-	    at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], as[ijks], as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
-	            +  visc * dg4(as[ijks-jjs3], as[ijks-jjs2], as[ijks-jjs1], as[ijks], as[ijks+jjs1], as[ijks+jjs2], as[ijks+jjs3])*dyidyi
-	            +  visc * dg4(akm3,          akm2,          akm1,          as[ijks], akp1,          akp2,          akp3         )*dzidzi;
+	    at[ijk] += visc * dg4(as[ijks-ii3 ], as[ijks-ii2 ], as[ijks-ii1 ], aijk, as[ijks+ii1 ], as[ijks+ii2 ], as[ijks+ii3 ])*dxidxi
+	            +  visc * dg4(as[ijks-jjs3], as[ijks-jjs2], as[ijks-jjs1], aijk, as[ijks+jjs1], as[ijks+jjs2], as[ijks+jjs3])*dyidyi
+	            +  visc * dg4(akm3,          akm2,          akm1,          aijk, akp1,          akp2,          akp3         )*dzidzi;
 
             // Shift vertical stencil
+            akm3 = akm2;
+            akm2 = akm1;
+            akm1 = aijk;
+            aijk = akp1;
+            akp1 = akp2;
+            akp2 = akp3;
             if(k < kend-1)
-            {
-                akm3 = akm2;
-                akm2 = akm1;
-                akm1 = as[ijks];
-                akp1 = akp2;
-                akp2 = akp3;
-                akp3 = a[ijk+kk4];
-            }
+                akp3 = a[ijk+kk4]; 
         }
     }
 }
