@@ -25,7 +25,7 @@ struct ConfusedCat : public Cat
 std::unique_ptr<Animal> getAnimal(const int i)
 {
   if (i == 1)
-    return std::unique_ptr<Cat>(new ConfusedCat());
+    return std::unique_ptr<Cat>(new Cat());
   else if (i == 2)
     return std::unique_ptr<ConfusedCat>(new ConfusedCat());
   else if (i == 3)
