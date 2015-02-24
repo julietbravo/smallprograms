@@ -5,15 +5,18 @@
 void printInt(const int n)
 { 
   std::cout << n << std::endl;
+  std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 void printHello()
 { 
   std::cout << "Hello!" << std::endl;
+  std::this_thread::sleep_for(std::chrono::seconds(2));
 }
 
 int calcSquare(const int n)
 { 
+  std::this_thread::sleep_for(std::chrono::seconds(2));
   return n*n;
 }
 
@@ -24,7 +27,6 @@ auto doWork(F& f, Args... args) -> decltype( f(args...) )
   auto fut = task.get_future();
   std::thread t(std::move(task), args...);
   t.join();
-
   return fut.get();
 }
 
