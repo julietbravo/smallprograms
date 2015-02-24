@@ -36,24 +36,30 @@ class ThreadPool
   public:
     ThreadPool() : active_(true)
     {
-      t_ = std::thread([&]()
-          { 
-            while (active_)
-            {
-            }
-          });
+      t1_ = std::thread(&ThreadPool::listen, this);
+      t2_ = std::thread(&ThreadPool::listen, this);
     }
 
     ~ThreadPool()
     {
       std::cout << "Terminating thread pool!" << std::endl;
       active_ = false;
-      t_.join();
+      t1_.join();
+      t2_.join();
     }
 
   private:
+    void listen()
+    {
+      while (active_)
+      {
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+      }
+    }
+
     std::atomic<bool> active_;
-    std::thread t_;
+    std::thread t1_;
+    std::thread t2_;
 };
 
 int main()
