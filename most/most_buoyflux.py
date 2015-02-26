@@ -64,9 +64,10 @@ def eval_w(L, gamma):
 zL = np.linspace(-10., 5., 1e5)
 L  = zsl / zL
 
-#B0 = 0.1 * (9.81/300.) # CBL
-B0 = -2.68e-2 * (9.81/300.) # ARM, initial condition
+# ARM
+B0 = -2.68e-2 * (9.81/300.)
 u0 = 10.
+
 gamma0 = zsl*kappa*B0 / u0**3
 
 eval0_bd = np.zeros(L.size)
@@ -77,20 +78,23 @@ for i in range(L.size):
 
 if (max(eval0_bd)*min(eval0_bd) > 0):
   zL0_bd = np.nan
-  db_bd  = np.nan
 else:
   zL0_bd = np.interp(0., eval0_bd, zL)
-  db_bd  = zL0_bd * fm(zsl/zL0_bd)**2 * u0**2 / (kappa * zsl * fh(zsl/zL0_bd) )
+db_bd  = zL0_bd * fm(zsl/zL0_bd)**2 * u0**2 / (kappa * zsl * fh(zsl/zL0_bd) )
 
 if (max(eval0_w)*min(eval0_w) > 0):
   zL0_w = np.nan
-  db_w  = np.nan
 else:
   zL0_w = np.interp(0., eval0_w, zL)
-  db_w  = zL0_w * fm(zsl/zL0_w)**2 * u0**2 / (kappa * zsl * fh(zsl/zL0_w) )
+db_w  = zL0_w * fm(zsl/zL0_w)**2 * u0**2 / (kappa * zsl * fh(zsl/zL0_w) )
 
-print('BD: z/L = {0}, db = {1}, B0 = {2}'.format(zL0_bd, db_bd, B0))
-print('W:  z/L = {0}, db = {1}, B0 = {2}'.format(zL0_w , db_w , B0))
+ustar_bd = u0 * fm (zsl/zL0_bd)
+ustar_w  = u0 * fmw(zsl/zL0_bd)
+ustar_n  = u0 * fm (np.inf)
+
+print('BD: z/L = {0}, db = {1}, B0 = {2}, ustar = {3}'.format(zL0_bd, db_bd, B0, ustar_bd))
+print('W:  z/L = {0}, db = {1}, B0 = {2}, ustar = {3}'.format(zL0_w , db_w , B0, ustar_w ))
+print("ustar_neutral = {0}".format(ustar_n))
 
 pl.close('all')
 

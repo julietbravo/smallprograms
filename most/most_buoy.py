@@ -76,20 +76,23 @@ for i in range(L.size):
 
 if (max(eval0_bd)*min(eval0_bd) > 0):
   zL0_bd = np.nan
-  B0_bd  = np.nan
 else:
   zL0_bd = np.interp(0., eval0_bd, zL)
-  B0_bd  = -zL0_bd * fm(zsl/zL0_bd)**3 * u0**3 / (kappa*zsl)
+B0_bd  = -zL0_bd * fm(zsl/zL0_bd)**3 * u0**3 / (kappa*zsl)
 
 if (max(eval0_w)*min(eval0_w) > 0):
   zL0_w = np.nan
-  B0_w  = np.nan
 else:
   zL0_w = np.interp(0., eval0_w, zL)
-  B0_w  = -zL0_w * fm(zsl/zL0_w)**3 * u0**3 / (kappa*zsl)
+B0_w  = -zL0_w * fm(zsl/zL0_w)**3 * u0**3 / (kappa*zsl)
 
-print('BD: z/L = {0}, db = {1}, B0 = {2}'.format(zL0_bd, db0, B0_bd))
-print('W:  z/L = {0}, db = {1}, B0 = {2}'.format(zL0_w , db0, B0_w ))
+ustar_bd = u0 * fm (zsl/zL0_bd)
+ustar_w  = u0 * fmw(zsl/zL0_bd)
+ustar_n  = u0 * fm (np.inf)
+
+print('BD: z/L = {0}, db = {1}, B0 = {2}, ustar = {3}'.format(zL0_bd, db0, B0_bd, ustar_bd))
+print('W:  z/L = {0}, db = {1}, B0 = {2}, ustar = {3}'.format(zL0_w , db0, B0_w , ustar_w ))
+print("ustar_neutral = {0}".format(ustar_n))
 
 pl.close('all')
 
