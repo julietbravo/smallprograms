@@ -1,13 +1,18 @@
 # !/usr/bin/python
-#from pylab import *
 import numpy as np
 import pylab as pl
 
-# Define some global constants
+# Input parameters.
+db0 = 0.0117522089558
+u0  = 10.
+#db0 = -0.101438103117
+#u0  = 1.
+z0m = 0.1
+z0h = 0.1
+zsl = 10
+
+# Constants.
 kappa = 0.4
-z0m   = 0.1
-z0h   = 0.1
-zsl   = 10
 
 # Integrated flux gradient relationships following Businger-Dyer.
 def psim(zeta):
@@ -64,8 +69,6 @@ def eval_w(L, gamma):
 zL = np.linspace(-10., 5., 1e5)
 L  = zsl / zL
 
-db0 = 0.0117522089558
-u0 = 10.
 gamma0 = zsl*kappa*db0 / u0**2
 
 eval0_bd = np.zeros(L.size)
