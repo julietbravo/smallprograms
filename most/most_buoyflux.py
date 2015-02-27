@@ -60,33 +60,35 @@ def fmw(L):
 def fhw(L):
   return kappa / (np.log(zsl/z0h) - psihw(zsl/L) + psihw(z0h/L))
 
-def eval_bd(L, gamma):
-  return zsl/L * fm(L)**3 + gamma
+def eval_bd(L):
+  return zsl/L * fm(L)**3
 
-def eval_w(L, gamma):
-  return zsl/L * fmw(L)**3 + gamma
+def eval_w(L):
+  return zsl/L * fmw(L)**3
 
 zL = np.linspace(-100., 10., 1e5)
 L  = zsl / zL
 
-gamma0 = zsl*kappa*B0 / u0**3
-
+# Evaluate the function (this has to be done only once for a range of Ri).
 eval0_bd = np.zeros(L.size)
 eval0_w  = np.zeros(L.size)
 for i in range(L.size):
-  eval0_bd[i] = eval_bd(L[i], gamma0)
-  eval0_w [i] = eval_w (L[i], gamma0)
+  eval0_bd[i] = eval_bd(L[i])
+  eval0_w [i] = eval_w (L[i])
 
-if (max(eval0_bd)*min(eval0_bd) > 0):
+# Find the value that matches with the value of Ri.
+Ri = -zsl*kappa*B0 / u0**3
+
+if (max(eval0_bd-Ri)*min(eval0_bd-Ri) > 0):
   zL0_bd = np.nan
 else:
-  zL0_bd = np.interp(0., eval0_bd, zL)
+  zL0_bd = np.interp(0., eval0_bd-Ri, zL)
 db_bd  = zL0_bd * fm(zsl/zL0_bd)**2 * u0**2 / (kappa * zsl * fh(zsl/zL0_bd) )
 
-if (max(eval0_w)*min(eval0_w) > 0):
+if (max(eval0_w-Ri)*min(eval0_w-Ri) > 0):
   zL0_w = np.nan
 else:
-  zL0_w = np.interp(0., eval0_w, zL)
+  zL0_w = np.interp(0., eval0_w-Ri, zL)
 db_w  = zL0_w * fm(zsl/zL0_w)**2 * u0**2 / (kappa * zsl * fh(zsl/zL0_w) )
 
 ustar_bd = u0 * fm (zsl/zL0_bd)
