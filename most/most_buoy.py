@@ -66,7 +66,7 @@ def eval_bd(L, gamma):
 def eval_w(L, gamma):
   return zsl/L * fmw(L)**2 / fhw(L) - gamma
 
-zL = np.linspace(-10., 5., 1e5)
+zL = np.linspace(-100., 10., 1e5)
 L  = zsl / zL
 
 gamma0 = zsl*kappa*db0 / u0**2

@@ -66,7 +66,7 @@ def eval_bd(L, gamma):
 def eval_w(L, gamma):
   return zsl/L * fmw(L)**3 + gamma
 
-zL = np.linspace(-10., 5., 1e5)
+zL = np.linspace(-100., 10., 1e5)
 L  = zsl / zL
 
 gamma0 = zsl*kappa*B0 / u0**3
@@ -104,3 +104,13 @@ pl.plot(zL, eval0_bd)
 pl.plot(zL, eval0_w )
 pl.xlabel('z/L')
 pl.ylabel('eval')
+
+dzL = zL[1] - zL[0]
+deval0_bd = np.gradient(eval0_bd, dzL)
+deval0_w  = np.gradient(eval0_w , dzL)
+
+pl.figure()
+pl.plot(zL, deval0_bd)
+pl.plot(zL, deval0_w )
+pl.xlabel('z/L')
+pl.ylabel('deval/dzL')
