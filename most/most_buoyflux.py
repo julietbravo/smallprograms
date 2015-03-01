@@ -70,16 +70,11 @@ def create_zL(nzL):
   zL_tmp = np.zeros(nzL)
   zL = np.zeros(nzL)
 
-  # Set the properties.
-  # zLmax =  1.
-  # zLmin = -5.
-  # zLfc  = 1.e4
-
-  # Calculate the non-streched part between -10 to 10 z/L with 7/8 of the points.
-  dzL = 20. / (7./8.*nzL-1)
+  # Calculate the non-streched part between -10 to 10 z/L with 1/10 of the points.
+  dzL = 20. / (9*nzL/10-1)
   zL_tmp[0] = -10.
 
-  for n in range(1, 7*nzL/8):
+  for n in range(1, 9*nzL/10):
     zL_tmp[n] = zL_tmp[n-1] + dzL
 
   # Stretch the remainder of the z/L values far down for free convection.
@@ -90,10 +85,10 @@ def create_zL(nzL):
   r0 = 1.e9
   while (abs( (r-r0)/r0 ) > 1.e-10):
     r0 = r
-    r  = ( 1. - (zLend/dzL)*(1.-r) )**(8./nzL)
+    r  = ( 1. - (zLend/dzL)*(1.-r) )**(10./nzL)
   print("Calculated stretching: {0}".format(r))
 
-  for n in range(7*nzL/8, nzL):
+  for n in range(9*nzL/10, nzL):
     zL_tmp[n] = zL_tmp[n-1] + dzL
     dzL *= r
 
@@ -134,9 +129,8 @@ print('BD: z/L = {0}, db = {1}, B0 = {2}, ustar = {3}'.format(zL0_bd, db_bd, B0,
 print('W:  z/L = {0}, db = {1}, B0 = {2}, ustar = {3}'.format(zL0_w , db_w , B0, ustar_w ))
 print("ustar_neutral = {0}".format(ustar_n))
 
-#pl.close('all')
-
-pl.figure(1)
+pl.close('all')
+pl.figure()
 pl.plot(zL, eval0_bd)
 pl.plot(zL, eval0_w )
 pl.xlabel('z/L')
