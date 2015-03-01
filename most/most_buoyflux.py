@@ -4,7 +4,7 @@ import pylab as pl
 
 # Input parameters.
 #B0 = 0.1 * (9.81/300.)
-#u0 = 1.
+#u0 = 0.1
 B0  = -2.68e-2 * (9.81/300.)
 u0  = 10.
 z0m = 0.1
@@ -70,11 +70,16 @@ def create_zL(nzL):
   zL_tmp = np.zeros(nzL)
   zL = np.zeros(nzL)
 
-  # Calculate the non-streched part between -10 to 10 z/L with 75% of the points.
-  dzL = 20. / (3./4.*nzL-1)
+  # Set the properties.
+  # zLmax =  1.
+  # zLmin = -5.
+  # zLfc  = 1.e4
+
+  # Calculate the non-streched part between -10 to 10 z/L with 7/8 of the points.
+  dzL = 20. / (7./8.*nzL-1)
   zL_tmp[0] = -10.
 
-  for n in range(1, 3*nzL/4):
+  for n in range(1, 7*nzL/8):
     zL_tmp[n] = zL_tmp[n-1] + dzL
 
   # Stretch the remainder of the z/L values far down for free convection.
@@ -85,9 +90,10 @@ def create_zL(nzL):
   r0 = 1.e9
   while (abs( (r-r0)/r0 ) > 1.e-10):
     r0 = r
-    r  = ( 1. - (zLend/dzL)*(1.-r) )**(4./nzL)
+    r  = ( 1. - (zLend/dzL)*(1.-r) )**(8./nzL)
+  print("Calculated stretching: {0}".format(r))
 
-  for n in range(3*nzL/4, nzL):
+  for n in range(7*nzL/8, nzL):
     zL_tmp[n] = zL_tmp[n-1] + dzL
     dzL *= r
 
@@ -97,7 +103,7 @@ def create_zL(nzL):
 
   return zL
 
-zL = create_zL(100000)
+zL = create_zL(1000)
 L  = zsl / zL
 
 gamma0 = zsl*kappa*B0 / u0**3
