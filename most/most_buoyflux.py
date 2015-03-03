@@ -4,7 +4,7 @@ import pylab as pl
 
 # Input parameters.
 #B0 = 0.1 * (9.81/300.)
-#u0 = 1.
+#u0 = 0.1
 B0  = -2.68e-2 * (9.81/300.)
 u0  = 10.
 z0m = 0.1
@@ -66,7 +66,39 @@ def eval_bd(L):
 def eval_w(L):
   return zsl/L * fmw(L)**3
 
-zL = np.linspace(-100., 10., 1e5)
+def create_zL(nzL):
+  zL_tmp = np.zeros(nzL)
+  zL = np.zeros(nzL)
+
+  # Calculate the non-streched part between -10 to 10 z/L with 1/10 of the points.
+  dzL = 20. / (9*nzL/10-1)
+  zL_tmp[0] = -10.
+
+  for n in range(1, 9*nzL/10):
+    zL_tmp[n] = zL_tmp[n-1] + dzL
+
+  # Stretch the remainder of the z/L values far down for free convection.
+  zLend = 1.e4 - 10.
+
+  # Find stretching that ends up at the correct value using geometric progression.
+  r  = 1.01
+  r0 = 1.e9
+  while (abs( (r-r0)/r0 ) > 1.e-10):
+    r0 = r
+    r  = ( 1. - (zLend/dzL)*(1.-r) )**(10./nzL)
+  print("Calculated stretching: {0}".format(r))
+
+  for n in range(9*nzL/10, nzL):
+    zL_tmp[n] = zL_tmp[n-1] + dzL
+    dzL *= r
+
+  # Calculate the final array and delete the temporary array.
+  for n in range(nzL):
+    zL[n] = -zL_tmp[nzL-n-1];
+
+  return zL
+
+zL = create_zL(1000)
 L  = zsl / zL
 
 # Evaluate the function (this has to be done only once for a range of Ri).
@@ -100,13 +132,13 @@ print('W:  z/L = {0}, db = {1}, B0 = {2}, ustar = {3}'.format(zL0_w , db_w , B0,
 print("ustar_neutral = {0}".format(ustar_n))
 
 pl.close('all')
-
 pl.figure()
 pl.plot(zL, eval0_bd)
 pl.plot(zL, eval0_w )
 pl.xlabel('z/L')
 pl.ylabel('eval')
 
+"""
 dzL = zL[1] - zL[0]
 deval0_bd = np.gradient(eval0_bd, dzL)
 deval0_w  = np.gradient(eval0_w , dzL)
@@ -116,3 +148,4 @@ pl.plot(zL, deval0_bd)
 pl.plot(zL, deval0_w )
 pl.xlabel('z/L')
 pl.ylabel('deval/dzL')
+"""
