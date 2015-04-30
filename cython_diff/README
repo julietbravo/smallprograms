@@ -1,0 +1,17 @@
+diff.py has both the call to the python and cython version
+compile Cython version with "python setup.py build_ext --inplace"
+
+Results:
+overhead  = time script without calling diffusion kernel
+time      = time script with calling diffusion
+loop time = time minus overhead
+iters     = number of times diffusion called
+time/iter = net time per diffusion call
+
+code    overhead  time   loop time  iters	time/iter	
+c++	    0.005     4.772  4.767	    100	    0.04767	
+python  5.2       50.44  45.24	    1       45.24
+cython  5.2       17.99  12.79	    100	    0.1279
+
+Python ~950x slower than C++
+Cython ~2.7x slower than C++
