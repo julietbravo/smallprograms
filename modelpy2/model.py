@@ -1,18 +1,26 @@
 import abc
+import pylab as pl
+import numpy as np
 
 class Model(object):
-    def __init__(self, input, atmosphere, surface):
+    def __init__(self, label, input, atmosphere, surface):
+        self.label = label
+
         self.runtime = input["runtime"]
         self.dt = input["dt"]
+        self.t = 0.
 
         self.atmosphere = atmosphere
         self.surface = surface
 
-        print("Atmosphere Type: ", type(self.atmosphere))
+        self.output = {}
+        self.output["t"] = []
+
+        print("Atmosphere Type: {0}".format(type(self.atmosphere).__name__))
+        print("Surface Type: {0}".format(type(self.surface).__name__))
 
     def run(self):
         nt = int(self.runtime / self.dt) + 1
-        t = 0.
 
         # Time loop.
         for n in range(nt):
@@ -26,16 +34,20 @@ class Model(object):
             self.atmosphere.integrate(self.dt)
 
             # Save output
-            self.atmosphere.output(t)
+            self.output["t"].append(self.t)
+            self.atmosphere.save_output()
 
             # Increate time
-            t += self.dt
+            self.t += self.dt
 
 class Atmosphere(object):
     __metaclass__ = abc.ABCMeta
 
     def __init__(self, atmosphere_input):
         self.theta = atmosphere_input["theta"]
+
+        self.output = {}
+        self.output["theta"] = []
 
     @abc.abstractmethod
     def tendency(self, surface):
@@ -47,10 +59,18 @@ class Atmosphere(object):
         """Time integrate the variables"""
         return
 
+    def save_output(self):
+        self.output["theta"].append(self.theta)
 
-    def output(self, t):
-        print("Saving output at t = {0}".format(t))
-        print("theta = {0}".format(self.theta))
+class AtmosphereConstant(Atmosphere):
+    def __init__(self, atmosphere_input):
+        Atmosphere.__init__(self, atmosphere_input)
+
+    def tendency(self, surface):
+        return
+
+    def integrate(self, dt):
+        return
 
 class AtmosphereBox(Atmosphere):
     def __init__(self, atmosphere_input):
@@ -88,6 +108,7 @@ class AtmosphereMixedLayer(Atmosphere):
 
 class Surface(object):
     __metaclass__ = abc.ABCMeta
+
     def __init__(self, surface_input):
         return
 
@@ -104,7 +125,7 @@ class SurfaceFixedFlux(Surface):
     def state(self, atmosphere):
         return
 
-class SurfaceFixedTemp(Surface):
+class SurfaceFixedTemperature(Surface):
     def __init__(self, surface_input):
         Surface.__init__(self, surface_input)
         self.theta_surf = surface_input["theta_surf"]
@@ -126,11 +147,12 @@ atmosphere_input["dtheta"] = 1.
 surface_input = {}
 surface_input["wtheta"] = 0.1
 
-model = Model( model_input,
-               AtmosphereBox(atmosphere_input),
-               SurfaceFixedFlux(surface_input) )
+model1 = Model( "Box with fixed flux",
+                model_input,
+                AtmosphereBox(atmosphere_input),
+                SurfaceFixedFlux(surface_input) )
 
-model.run()
+model1.run()
 
 # Test case 2: Mixed-layer model for atmosphere
 atmosphere_input2 = atmosphere_input.copy()
@@ -140,17 +162,41 @@ atmosphere_input2["beta"] = 0.2
 surface_input2 = surface_input.copy()
 surface_input2["wtheta"] = 0.1
 
-model2 = Model( model_input,
+model2 = Model( "Growing mixed layer with fixed flux",
+                model_input,
                 AtmosphereMixedLayer(atmosphere_input2),
                 SurfaceFixedFlux(surface_input2) )
 model2.run()
 
 # Test case 3: Mixed-layer model with a interacting surface
 surface_input3 = {}
-surface_input3["theta_surf"] = 303.
+surface_input3["theta_surf"] = 305.
 surface_input3["ra"] = 50.
 
-model3 = Model( model_input,
+model3 = Model( "Mixed layer with fixed temperature",
+                model_input,
                 AtmosphereMixedLayer(atmosphere_input2),
-                SurfaceFixedTemp(surface_input3) )
+                SurfaceFixedTemperature(surface_input3) )
 model3.run()
+
+models = [ model1, model2, model3 ]
+
+# Plot the output of the three cases
+pl.figure()
+for m in models:
+    t = np.asarray(m.output["t"])
+    theta = np.asarray(m.atmosphere.output["theta"])
+    pl.plot(t, theta, label=m.label)
+pl.xlabel('t')
+pl.ylabel('theta')
+pl.legend(loc=0, frameon=False)
+
+# Simple calculation examples to bypass complex code
+surface_input_simple = { "theta_surf" : 305., "ra" : 50. }
+surface_simple = SurfaceFixedTemperature(surface_input_simple)
+
+atmosphere_input_simple = { "theta" : 300. }
+atmosphere_simple = AtmosphereConstant(atmosphere_input_simple)
+
+surface_simple.state(atmosphere_simple)
+print("Calculated wtheta = {0}".format(surface_simple.wtheta))
