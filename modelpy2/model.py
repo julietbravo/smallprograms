@@ -1,7 +1,7 @@
 from atmosphere import *
 from surface import *
 
-class Model(object):
+class Model:
     def __init__(self, label, input, atmosphere, surface):
         self.label = label
 
