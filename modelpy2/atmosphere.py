@@ -1,6 +1,7 @@
 class AtmosphereConstant:
     def __init__(self, atmosphere_input):
         self.theta = atmosphere_input["theta"]
+
         self.output = {}
         self.output["theta"] = []
 
@@ -20,6 +21,7 @@ class AtmosphereBox:
 
         self.output = {}
         self.output["theta"] = []
+        self.output["h"] = []
 
     def tendency(self, surface):
         self.theta_tend = surface.wtheta / self.h
@@ -41,6 +43,8 @@ class AtmosphereMixedLayer:
 
         self.output = {}
         self.output["theta"] = []
+        self.output["h"] = []
+        self.output["dtheta"] = []
 
     def tendency(self, surface):
         self.h_tend = self.beta * surface.wtheta / self.dtheta
@@ -58,4 +62,6 @@ class AtmosphereMixedLayer:
 
     def save_output(self):
         self.output["theta"].append(self.theta)
+        self.output["h"].append(self.h)
+        self.output["dtheta"].append(self.dtheta)
 
