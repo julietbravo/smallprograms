@@ -1,9 +1,9 @@
 import abc
 
 class Model(object):
-    def __init__(self, atmosphere, surface):
-        self.runtime = 7200.
-        self.dt = 60.
+    def __init__(self, input, atmosphere, surface):
+        self.runtime = input["runtime"]
+        self.dt = input["dt"]
 
         self.atmosphere = atmosphere
         self.surface = surface
@@ -114,6 +114,10 @@ class SurfaceFixedTemp(Surface):
         self.wtheta = (self.theta_surf - atmosphere.theta) / self.ra
 
 # Test case 1: Box model for atmosphere
+model_input = {}
+model_input["runtime"] = 7200.
+model_input["dt"] = 60.
+
 atmosphere_input = {}
 atmosphere_input["h"] = 100.
 atmosphere_input["theta"] = 300.
@@ -122,7 +126,8 @@ atmosphere_input["dtheta"] = 1.
 surface_input = {}
 surface_input["wtheta"] = 0.1
 
-model = Model( AtmosphereBox(atmosphere_input),
+model = Model( model_input,
+               AtmosphereBox(atmosphere_input),
                SurfaceFixedFlux(surface_input) )
 
 model.run()
@@ -135,14 +140,17 @@ atmosphere_input2["beta"] = 0.2
 surface_input2 = surface_input.copy()
 surface_input2["wtheta"] = 0.1
 
-model2 = Model( AtmosphereMixedLayer(atmosphere_input2),
+model2 = Model( model_input,
+                AtmosphereMixedLayer(atmosphere_input2),
                 SurfaceFixedFlux(surface_input2) )
 model2.run()
 
+# Test case 3: Mixed-layer model with a interacting surface
 surface_input3 = {}
 surface_input3["theta_surf"] = 303.
 surface_input3["ra"] = 50.
 
-model3 = Model( AtmosphereMixedLayer(atmosphere_input2),
+model3 = Model( model_input,
+                AtmosphereMixedLayer(atmosphere_input2),
                 SurfaceFixedTemp(surface_input3) )
 model3.run()
