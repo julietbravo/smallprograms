@@ -1,0 +1,68 @@
+import abc
+
+class Atmosphere(object):
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(self, atmosphere_input):
+        self.theta = atmosphere_input["theta"]
+
+        self.output = {}
+        self.output["theta"] = []
+
+    @abc.abstractmethod
+    def tendency(self, surface):
+        """Calculate the tendencies"""
+        return
+
+    @abc.abstractmethod
+    def integrate(self, dt):
+        """Time integrate the variables"""
+        return
+
+    def save_output(self):
+        self.output["theta"].append(self.theta)
+
+class AtmosphereConstant(Atmosphere):
+    def __init__(self, atmosphere_input):
+        Atmosphere.__init__(self, atmosphere_input)
+
+    def tendency(self, surface):
+        return
+
+    def integrate(self, dt):
+        return
+
+class AtmosphereBox(Atmosphere):
+    def __init__(self, atmosphere_input):
+        Atmosphere.__init__(self, atmosphere_input)
+        self.h = atmosphere_input["h"]
+
+    def tendency(self, surface):
+        self.theta_tend = surface.wtheta / self.h
+
+    def integrate(self, dt):
+        self.theta += dt * self.theta_tend
+        self.theta_tend = 0.
+
+class AtmosphereMixedLayer(Atmosphere):
+    def __init__(self, atmosphere_input):
+        Atmosphere.__init__(self, atmosphere_input)
+        self.h = atmosphere_input["h"]
+        self.dtheta = atmosphere_input["dtheta"]
+        self.gamma_theta = atmosphere_input["gamma_theta"]
+        self.beta = atmosphere_input["beta"]
+
+    def tendency(self, surface):
+        self.h_tend = self.beta * surface.wtheta / self.dtheta
+        self.theta_tend = (1. + self.beta) * surface.wtheta / self.h
+        self.dtheta_tend = self.gamma_theta * self.h_tend - self.theta_tend
+
+    def integrate(self, dt):
+        self.h += dt * self.h_tend
+        self.theta += dt * self.theta_tend
+        self.dtheta += dt * self.dtheta_tend
+
+        self.h_tend = 0.
+        self.theta_tend = 0.
+        self.dtheta_tend = 0.
+
