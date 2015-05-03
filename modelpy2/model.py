@@ -1,5 +1,7 @@
+import abc
+
 class Model(object):
-    def __init__(self, atmosphere, surface=None):
+    def __init__(self, atmosphere, surface):
         self.runtime = 7200.
         self.dt = 60.
 
@@ -15,6 +17,8 @@ class Model(object):
         # Time loop.
         for n in range(nt):
             # Calculate state
+            self.surface.state(self.atmosphere)
+
             # Calculate tendency
             self.atmosphere.tendency(self.surface)
 
@@ -28,11 +32,21 @@ class Model(object):
             t += self.dt
 
 class Atmosphere(object):
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, atmosphere_input):
         self.theta = atmosphere_input["theta"]
 
-    def integrate(self, dt):
+    @abc.abstractmethod
+    def tendency(self, surface):
+        """Calculate the tendencies"""
         return
+
+    @abc.abstractmethod
+    def integrate(self, dt):
+        """Time integrate the variables"""
+        return
+
 
     def output(self, t):
         print("Saving output at t = {0}".format(t))
@@ -73,12 +87,31 @@ class AtmosphereMixedLayer(Atmosphere):
         self.dtheta_tend = 0.
 
 class Surface(object):
+    __metaclass__ = abc.ABCMeta
     def __init__(self, surface_input):
-        self.wtheta = surface_input["wtheta"]
+        return
+
+    @abc.abstractmethod
+    def state(self, atmosphere):
+        """Update the value of the surface flux"""
+        return
 
 class SurfaceFixedFlux(Surface):
     def __init__(self, surface_input):
         Surface.__init__(self, surface_input)
+        self.wtheta = surface_input["wtheta"]
+
+    def state(self, atmosphere):
+        return
+
+class SurfaceFixedTemp(Surface):
+    def __init__(self, surface_input):
+        Surface.__init__(self, surface_input)
+        self.theta_surf = surface_input["theta_surf"]
+        self.ra = surface_input["ra"]
+
+    def state(self, atmosphere):
+        self.wtheta = (self.theta_surf - atmosphere.theta) / self.ra
 
 # Test case 1: Box model for atmosphere
 atmosphere_input = {}
@@ -105,3 +138,11 @@ surface_input2["wtheta"] = 0.1
 model2 = Model( AtmosphereMixedLayer(atmosphere_input2),
                 SurfaceFixedFlux(surface_input2) )
 model2.run()
+
+surface_input3 = {}
+surface_input3["theta_surf"] = 303.
+surface_input3["ra"] = 50.
+
+model3 = Model( AtmosphereMixedLayer(atmosphere_input2),
+                SurfaceFixedTemp(surface_input3) )
+model3.run()
