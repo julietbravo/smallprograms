@@ -1,9 +1,3 @@
-def set_value(destination, source):
-    if not source:
-        raise RuntimeError("Oh oh...")
-    else:
-        destination = source
-
 class Model(object):
     def __init__(self, atmosphere):
         self.runtime = 7200.
