@@ -12,10 +12,10 @@
 namespace
 {
     template<typename T>
-    void checkItem(const T& t) {}
+    void check_item(const T& t) {}
     
     template<>
-    void checkItem(const std::string& s)
+    void check_item(const std::string& s)
     {
         // Check whether string is empty or whether the first character is not alpha.
         if (s.empty())
@@ -76,7 +76,7 @@ Input::Input(const std::string& file_name)
             if (header.at(0) == '[' && header.at(header.size()-1) == ']')
             {
                 blockname = header.substr(1, header.size()-2);
-                checkItem(blockname);
+                check_item(blockname);
             }
             else
                 throw std::runtime_error("Illegal line");
@@ -102,14 +102,14 @@ Input::Input(const std::string& file_name)
                 {
                     // Save the suboption and check string.
                     leftsub = left.substr(openpos+1, closepos-openpos-1);
-                    checkItem(leftsub);
+                    check_item(leftsub);
 
                     // Strip of suboption.
                     left = left.substr(0, openpos);
                 }
             }
 
-            checkItem(left);
+            check_item(left);
 
             // Leave the checking of the right string for later
             // when the type is known.
@@ -121,7 +121,7 @@ Input::Input(const std::string& file_name)
     }
 }
 
-void Input::printItemList()
+void Input::print_itemlist()
 {
     // Print the list as a test.
     for (auto& b : itemlist)
@@ -132,10 +132,10 @@ void Input::printItemList()
     
 namespace
 {
-    std::string getItemString(const Input::ItemList& itemlist,
-                              const std::string& blockname,
-                              const std::string& itemname,
-                              const std::string& subitemname)
+    std::string get_item_string(const Input::Itemlist& itemlist,
+                                const std::string& blockname,
+                                const std::string& itemname,
+                                const std::string& subitemname)
     {
         auto itblock = itemlist.find(blockname);
         if (itblock == itemlist.end())
@@ -153,7 +153,7 @@ namespace
     }
     
     template<typename T>
-    T getItemFromStream(std::istringstream& ss)
+    T get_item_from_stream(std::istringstream& ss)
     {
         // Read the item from the stringstream, operator >> trims automatically.
         T item;
@@ -170,26 +170,26 @@ namespace
 }
 
 template<typename T>
-T Input::getItem(const std::string& blockname,
-                 const std::string& itemname,
-                 const std::string& subitemname)
+T Input::get_item(const std::string& blockname,
+                  const std::string& itemname,
+                  const std::string& subitemname)
 {
-    std::string value = getItemString(itemlist, blockname, itemname, subitemname);
+    std::string value = get_item_string(itemlist, blockname, itemname, subitemname);
 
     std::istringstream ss(value);
 
-    T item = getItemFromStream<T>(ss);
-    checkItem<T>(item);
+    T item = get_item_from_stream<T>(ss);
+    check_item<T>(item);
 
     return item;
 }
 
 template<typename T>
-std::vector<T> Input::getList(const std::string& blockname,
-                              const std::string& itemname,
-                              const std::string& subitemname)
+std::vector<T> Input::get_list(const std::string& blockname,
+                               const std::string& itemname,
+                               const std::string& subitemname)
 {
-    std::string value = getItemString(itemlist, blockname, itemname, subitemname);
+    std::string value = get_item_string(itemlist, blockname, itemname, subitemname);
 
     std::vector<std::string> listitems;
     boost::split(listitems, value, boost::is_any_of(","));
@@ -198,8 +198,8 @@ std::vector<T> Input::getList(const std::string& blockname,
     for (std::string itemstring : listitems)
     {
         std::istringstream ss(itemstring);
-        T item = getItemFromStream<T>(ss);
-        checkItem(item);
+        T item = get_item_from_stream<T>(ss);
+        check_item(item);
         list.push_back(item);
     }
 
@@ -207,11 +207,11 @@ std::vector<T> Input::getList(const std::string& blockname,
 }
 
 // Explicitly instantiate templates.
-template int Input::getItem<int>(const std::string&, const std::string&, const std::string&);
-template double Input::getItem<double>(const std::string&, const std::string&, const std::string&);
-template std::string Input::getItem<std::string>(const std::string&, const std::string&, const std::string&);
+template int Input::get_item<int>(const std::string&, const std::string&, const std::string&);
+template double Input::get_item<double>(const std::string&, const std::string&, const std::string&);
+template std::string Input::get_item<std::string>(const std::string&, const std::string&, const std::string&);
 
-template std::vector<int> Input::getList<int>(const std::string&, const std::string&, const std::string&);
-template std::vector<double> Input::getList<double>(const std::string&, const std::string&, const std::string&);
-template std::vector<std::string> Input::getList<std::string>(const std::string&, const std::string&, const std::string&);
+template std::vector<int> Input::get_list<int>(const std::string&, const std::string&, const std::string&);
+template std::vector<double> Input::get_list<double>(const std::string&, const std::string&, const std::string&);
+template std::vector<std::string> Input::get_list<std::string>(const std::string&, const std::string&, const std::string&);
 

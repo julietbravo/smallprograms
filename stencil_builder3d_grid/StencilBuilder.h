@@ -11,6 +11,10 @@ namespace StencilBuilder
   constexpr UnitVec jvec = {0, 1, 0};
   constexpr UnitVec kvec = {0, 0, 1};
 
+  typedef const int GridLoc;
+  const GridLoc Hlf = 0;
+  const GridLoc Ctr = 1;
+
   // Function for printing the demangled name of a type to the screen.
   template<class T>
   std::string getDemangledName(const T& t)
@@ -71,7 +75,7 @@ namespace StencilBuilder
 
   // STENCIL NODE CLASS
   // Stencil node in expression tree.
-  template<int loc, class Inner, class Op, UnitVec vec>
+  template<GridLoc loc, class Inner, class Op, UnitVec vec>
   struct Stencil
   {
     Stencil(const Inner& inner) : inner_(inner) {}
@@ -89,53 +93,53 @@ namespace StencilBuilder
 
   // Stencil generation operator for interpolation.
   template<class Inner>
-  inline Stencil<1, Inner, Interp, ivec> Ix(const Inner& inner)
-  { return Stencil<1, Inner, Interp, ivec>(inner); }
+  inline Stencil<Ctr, Inner, Interp, ivec> Ix(const Inner& inner)
+  { return Stencil<Ctr, Inner, Interp, ivec>(inner); }
 
   template<class Inner>
-  inline Stencil<1, Inner, Interp, jvec> Iy(const Inner& inner)
-  { return Stencil<1, Inner, Interp, jvec>(inner); }
+  inline Stencil<Ctr, Inner, Interp, jvec> Iy(const Inner& inner)
+  { return Stencil<Ctr, Inner, Interp, jvec>(inner); }
 
   template<class Inner>
-  inline Stencil<1, Inner, Interp, kvec> Iz(const Inner& inner)
-  { return Stencil<1, Inner, Interp, kvec>(inner); }
+  inline Stencil<Ctr, Inner, Interp, kvec> Iz(const Inner& inner)
+  { return Stencil<Ctr, Inner, Interp, kvec>(inner); }
 
   template<class Inner>
-  inline Stencil<0, Inner, Interp, ivec> Ix_h(const Inner& inner)
-  { return Stencil<0, Inner, Interp, ivec>(inner); }
+  inline Stencil<Hlf, Inner, Interp, ivec> Ix_h(const Inner& inner)
+  { return Stencil<Hlf, Inner, Interp, ivec>(inner); }
 
   template<class Inner>
-  inline Stencil<0, Inner, Interp, jvec> Iy_h(const Inner& inner)
-  { return Stencil<0, Inner, Interp, jvec>(inner); }
+  inline Stencil<Hlf, Inner, Interp, jvec> Iy_h(const Inner& inner)
+  { return Stencil<Hlf, Inner, Interp, jvec>(inner); }
 
   template<class Inner>
-  inline Stencil<0, Inner, Interp, kvec> Iz_h(const Inner& inner)
-  { return Stencil<0, Inner, Interp, kvec>(inner); }
+  inline Stencil<Hlf, Inner, Interp, kvec> Iz_h(const Inner& inner)
+  { return Stencil<Hlf, Inner, Interp, kvec>(inner); }
 
   // Stencil generation operator for gradient.
   template<class Inner>
-  inline Stencil<1, Inner, Grad, ivec> Gx(const Inner& inner)
-  { return Stencil<1, Inner, Grad, ivec>(inner); }
+  inline Stencil<Ctr, Inner, Grad, ivec> Gx(const Inner& inner)
+  { return Stencil<Ctr, Inner, Grad, ivec>(inner); }
 
   template<class Inner>
-  inline Stencil<1, Inner, Grad, jvec> Gy(const Inner& inner)
-  { return Stencil<1, Inner, Grad, jvec>(inner); }
+  inline Stencil<Ctr, Inner, Grad, jvec> Gy(const Inner& inner)
+  { return Stencil<Ctr, Inner, Grad, jvec>(inner); }
 
   template<class Inner>
-  inline Stencil<1, Inner, Grad, kvec> Gz(const Inner& inner)
-  { return Stencil<1, Inner, Grad, kvec>(inner); }
+  inline Stencil<Ctr, Inner, Grad, kvec> Gz(const Inner& inner)
+  { return Stencil<Ctr, Inner, Grad, kvec>(inner); }
 
   template<class Inner>
-  inline Stencil<0, Inner, Grad, ivec> Gx_h(const Inner& inner)
-  { return Stencil<0, Inner, Grad, ivec>(inner); }
+  inline Stencil<Hlf, Inner, Grad, ivec> Gx_h(const Inner& inner)
+  { return Stencil<Hlf, Inner, Grad, ivec>(inner); }
 
   template<class Inner>
-  inline Stencil<0, Inner, Grad, jvec> Gy_h(const Inner& inner)
-  { return Stencil<0, Inner, Grad, jvec>(inner); }
+  inline Stencil<Hlf, Inner, Grad, jvec> Gy_h(const Inner& inner)
+  { return Stencil<Hlf, Inner, Grad, jvec>(inner); }
 
   template<class Inner>
-  inline Stencil<0, Inner, Grad, kvec> Gz_h(const Inner& inner)
-  { return Stencil<0, Inner, Grad, kvec>(inner); }
+  inline Stencil<Hlf, Inner, Grad, kvec> Gz_h(const Inner& inner)
+  { return Stencil<Hlf, Inner, Grad, kvec>(inner); }
 
   // SCALAR OPERATORS
   // Multiplication operator.
