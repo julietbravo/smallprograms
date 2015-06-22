@@ -17,18 +17,18 @@ kappa = 0.4
 # Integrated flux gradient relationships following Businger-Dyer.
 def psim(zeta):
   if(zeta <= 0):
-    x     = (1. - 16. * zeta) ** (0.25)
-    psim  = 3.14159265 / 2. - 2. * np.arctan(x) + np.log( (1.+x) ** 2. * (1. + x ** 2.) / 8.)
+    x    = (1. - 16. * zeta) ** (0.25)
+    psim = 3.14159265 / 2. - 2. * np.arctan(x) + np.log( (1.+x) ** 2. * (1. + x ** 2.) / 8.)
   else:
-    psim  = -2./3. * (zeta - 5./0.35)*np.exp(-0.35 * zeta) - zeta - (10./3.) / 0.35
+    psim = -4.8 * zeta
   return psim
 
 def psih(zeta):
   if(zeta <= 0):
-    x     = (1. - 16. * zeta) ** (0.25)
-    psih  = 2. * np.log( (1. + x ** 2.) / 2. )
+    x    = (1. - 16. * zeta) ** (0.25)
+    psih = 2. * np.log( (1. + x ** 2.) / 2. )
   else:
-    psih  = -2./3. * (zeta - 5./0.35)*np.exp(-0.35 * zeta) - (1. + (2./3.) * zeta) ** (1.5) - (10./3.) / 0.35 + 1.
+    psih = -7.8 * zeta
   return psih
 
 # Integrated flux gradient relationships following Wilson.
@@ -37,7 +37,7 @@ def psimw(zeta):
     x     = (1. + 3.6 * abs(zeta) ** (2./3.)) ** (-0.5)
     psimw = 3. * np.log( (1. + 1. / x) / 2.)
   else:
-    psimw  = -2./3. * (zeta - 5./0.35)*np.exp(-0.35 * zeta) - zeta - (10./3.) / 0.35
+    psimw = -4.8 * zeta
   return psimw
   
 def psihw(zeta):
@@ -45,7 +45,7 @@ def psihw(zeta):
     x     = (1. + 7.9 * abs(zeta) ** (2./3.)) ** (-0.5)
     psihw  = 3. * np.log( (1. + 1. / x) / 2.)
   else:
-    psihw  = -2./3. * (zeta - 5./0.35)*np.exp(-0.35 * zeta) - (1. + (2./3.) * zeta) ** (1.5) - (10./3.) / 0.35 + 1.
+    psihw = -7.8 * zeta
   return psihw
 
 def fm(L):
@@ -98,7 +98,7 @@ def create_zL(nzL):
 
   return zL
 
-zL = create_zL(1000)
+zL = create_zL(10000)
 L  = zsl / zL
 
 # Evaluate the function (this has to be done only once for a range of Ri).
@@ -133,8 +133,9 @@ print("ustar_neutral = {0}".format(ustar_n))
 
 pl.close('all')
 pl.figure()
-pl.plot(zL, eval0_bd)
-pl.plot(zL, eval0_w )
+pl.plot(zL, eval0_bd, 'b-')
+pl.plot(zL, eval0_w , 'g-')
+pl.plot(zL, Ri*np.ones(zL.size), 'k-')
 pl.xlabel('z/L')
 pl.ylabel('eval')
 
