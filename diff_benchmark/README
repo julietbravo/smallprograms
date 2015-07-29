@@ -7,6 +7,6 @@ Results (on Macbook, with GCC 4.9.3), "relative" is speedup/slowdown compared to
 
 		time/iter [s]  iters   relative
 C++     0.004853       1000       1.000
-Python  5.681355       1	   1170.689
+Python  5.681355       1       1170.689
 Cython  0.016677       1000       3.436
 Julia   0.004386       1000       0.904

@@ -1,4 +1,4 @@
-COMP=g++-mp-4.8
+COMP=g++-mp-4.9
 #COMP=g++ #=clang on macbook
 FLAGS=-Ofast -mtune=native
 
