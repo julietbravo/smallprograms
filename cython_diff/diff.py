@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from diff_cython import *
 
@@ -22,23 +23,39 @@ def diff_py(at, a, visc, dxidxi, dyidyi, dzidzi, itot, jtot, ktot):
 
 def init(a, at, ncells):
     for i in range(ncells):
-        a[i]  = i*i
+        a[i]  = i**2./(i+1)**2.
         at[i] = 0.
 
 if(__name__ == "__main__"):
-    nloop = 100
-    itot = 256
-    jtot = 256
-    ktot = 256
+    mode = 'py'
+    nloop = 1
+    itot = 128
+    jtot = 128
+    ktot = 128
     ncells = itot*jtot*ktot
     
     a  = np.zeros(ncells)
     at = np.zeros(ncells)
     
     init(a, at, ncells)
-   
-    for i in range(nloop): 
-        #diff_py(at, a, 0.1, 0.1, 0.1, 0.1, itot, jtot, ktot) 
+
+    # Check results
+    if(mode == 'py'):
+        diff_py(at, a, 0.1, 0.1, 0.1, 0.1, itot, jtot, ktot) 
+    elif(mode == 'cy'):
         diff_pyx(at, a, 0.1, 0.1, 0.1, 0.1, itot, jtot, ktot) 
-   
-    #print("at=%f"%at[itot*jtot+2*itot+2])
+    print("at=%f"%at[itot*jtot+itot+itot/2])
+
+    # Time performance 
+    start = time.time()
+ 
+    if(mode == 'py'): 
+        for i in range(nloop): 
+            diff_py(at, a, 0.1, 0.1, 0.1, 0.1, itot, jtot, ktot) 
+    elif(mode == 'cy'):
+        for i in range(nloop): 
+            diff_pyx(at, a, 0.1, 0.1, 0.1, 0.1, itot, jtot, ktot) 
+ 
+    end = time.time()
+
+    print("time/iter = %f s (%i iters)"%((end-start)/float(nloop),nloop))

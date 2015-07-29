@@ -3,12 +3,14 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <cstdio>
+#include <ctime>
+#include "math.h"
 
 void init(double* const __restrict__ a, double* const __restrict__ at, const int ncells)
 {
     for (int i=0; i<ncells; ++i)
     {
-        a[i]  = i*i;
+        a[i]  = pow(i,2)/pow(i+1,2);
         at[i] = 0.;
     }
 }
@@ -40,21 +42,30 @@ void diff(double* const __restrict__ at, const double* const __restrict__ a, con
 
 int main()
 {
-    const int nloop = 100;
-    const int itot = 256;
-    const int jtot = 256;
-    const int ktot = 256;
+    const int nloop = 1000;
+    const int itot = 128;
+    const int jtot = 128;
+    const int ktot = 128;
     const int ncells = itot*jtot*ktot;
 
     double *a  = new double[ncells];
     double *at = new double[ncells];
    
     init(a, at, ncells);
+
+    // Check results
+    diff(at, a, 0.1, 0.1, 0.1, 0.1, itot, jtot, ktot); 
+    printf("at=%.20f\n",at[itot*jtot+itot+itot/2]);
+ 
+    // Time performance 
+    std::clock_t start = std::clock(); 
    
     for (int i=0; i<nloop; ++i)
         diff(at, a, 0.1, 0.1, 0.1, 0.1, itot, jtot, ktot); 
+  
+    double duration = (std::clock() - start ) / (double)CLOCKS_PER_SEC;
    
-    //printf("at=%f\n",at[itot*jtot+2*itot+2]);
+    printf("time/iter = %f s (%i iters)\n",duration/(double)nloop, nloop);
     
     return 0;
 }
