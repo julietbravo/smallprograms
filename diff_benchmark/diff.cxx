@@ -42,7 +42,7 @@ void diff(double* const __restrict__ at, const double* const __restrict__ a, con
 
 int main()
 {
-    const int nloop = 1000;
+    const int nloop = 100;
     const int itot = 128;
     const int jtot = 128;
     const int ktot = 128;

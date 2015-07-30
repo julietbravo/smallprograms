@@ -5,9 +5,9 @@ function diff(at, a, visc, dxidxi, dyidyi, dzidzi, itot, jtot, ktot)
     jj = itot
     kk = itot*jtot
 
-    @inbounds for k = 2:ktot-1
-        for j = 2:jtot-1
-            @simd for i = 2:itot-1
+    @inbounds for (k = 2:ktot-1)
+        for j = (2:jtot-1)
+            @simd for i = (2:itot-1)
                 ijk = i + (j-1)*jj + (k-1)*kk
                 at[ijk] += visc * (
                         + ( (a[ijk+ii] - a[ijk   ]) 
@@ -30,7 +30,7 @@ function init(a, at, ncells)
 end 
 
 # Start benchmark
-nloop  = 1000
+nloop  = 100
 itot   = 128
 jtot   = 128
 ktot   = 128
@@ -48,7 +48,7 @@ println("at=",at[itot*jtot+itot+itot/2+1]);
 # Time performance 
 tic()
 
-for i = 1:nloop
+for (i = 1:nloop)
     diff(at, a, 0.1, 0.1, 0.1, 0.1, itot, jtot, ktot)
 end
 

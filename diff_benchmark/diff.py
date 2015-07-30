@@ -27,8 +27,8 @@ def init(a, at, ncells):
         at[i] = 0.
 
 if(__name__ == "__main__"):
-    mode = 'py'
-    nloop = 1
+    mode = 'cy'
+    nloop = 100
     itot = 128
     jtot = 128
     ktot = 128
