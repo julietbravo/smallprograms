@@ -4,19 +4,19 @@
 #include <stdlib.h>
 #include <cstdio>
 
-__host__ __device__ inline double dg4(const double v1, const double v2, const double v3, const double v4, const double v5, const double v6, const double v7) 
+__host__ __device__ inline double dg4(const double v1, const double v2, const double v3, const double v4, const double v5, const double v6, const double v7)
 {
     return (1./576.)*(v1+v7) + (-54./576.)*(v2+v6) + (783./576.)*(v3+v5) + (-1460./576.)*v4;
 }
 
-/* 
+/*
 4th order diffusion (3D), quite similar to CPU implementation MicroHH
 */
 void diff_cpu_3d(double * const __restrict__ at, const double * const __restrict__ a,
         const double dxidxi, const double dyidyi, const double dzidzi,
-        const int istart, const int iend, 
-        const int jstart, const int jend, 
-        const int kstart, const int kend, 
+        const int istart, const int iend,
+        const int jstart, const int jend,
+        const int kstart, const int kend,
         const int icells, const int ijcells)
 {
     const int ii1 = 1;
@@ -44,14 +44,14 @@ void diff_cpu_3d(double * const __restrict__ at, const double * const __restrict
             }
 }
 
-/* 
+/*
 4th order diffusion (3D), no shared memory use, quite similar to GPU implementation MicroHH
 */
 __global__ void diff_gpu_3d(double * const __restrict__ at, const double * const __restrict__ a,
         const double dxidxi, const double dyidyi, const double dzidzi,
-        const int istart, const int iend, 
-        const int jstart, const int jend, 
-        const int kstart, const int kend, 
+        const int istart, const int iend,
+        const int jstart, const int jend,
+        const int kstart, const int kend,
         const int icells, const int ijcells)
 {
     const int i = blockIdx.x*blockDim.x + threadIdx.x + istart;
@@ -80,17 +80,17 @@ __global__ void diff_gpu_3d(double * const __restrict__ at, const double * const
     }
 }
 
-/* 
+/*
 4th order diffusion, shared memory for horizontal (i,j) stencil, global memory for vertical (k) stencil
 */
 __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * const __restrict__ a,
         const double dxidxi, const double dyidyi, const double dzidzi,
-        const int istart, const int iend, 
-        const int jstart, const int jend, 
-        const int kstart, const int kend, 
+        const int istart, const int iend,
+        const int jstart, const int jend,
+        const int kstart, const int kend,
         const int icells, const int ijcells, const int ngc)
 {
-    extern __shared__ double as[]; 
+    extern __shared__ double as[];
 
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -139,17 +139,17 @@ __global__ void diff_gpu_3d_s2d(double * const __restrict__ at, const double * c
     }
 }
 
-/* 
+/*
 4th order diffusion, shared memory for horizontal (i,j) stencil, vertical stencil in local variables, vertical loop on GPU
 */
 __global__ void diff_gpu_3d_s3d(double * const __restrict__ at, const double * const __restrict__ a,
         const double dxidxi, const double dyidyi, const double dzidzi,
-        const int istart, const int iend, 
-        const int jstart, const int jend, 
-        const int kstart, const int kend, 
+        const int istart, const int iend,
+        const int jstart, const int jend,
+        const int kstart, const int kend,
         const int icells, const int ijcells, const int ngc)
 {
-    extern __shared__ double as[]; 
+    extern __shared__ double as[];
 
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -220,13 +220,13 @@ __global__ void diff_gpu_3d_s3d(double * const __restrict__ at, const double * c
             akp1 = akp2;
             akp2 = akp3;
             if(k < kend-1)
-                akp3 = a[ijk+kk4]; 
+                akp3 = a[ijk+kk4];
         }
     }
 }
 
 
-/* 
+/*
 Get max difference between two fields
 */
 double maxdiff(const double * const __restrict__ a, const double * const __restrict__ b, const int n)
@@ -250,13 +250,13 @@ int main()
     const double dxi = 0.1;
     const double dyi = 0.1;
     const double dzi = 0.1;
-    
+
     const int itot = 256;
     const int jtot = 256;
     const int ktot = 256;
     const int gc   = 3;
     const int iter = 50;
-    
+
     //
     // Calculate the required variables.
     //
@@ -269,31 +269,31 @@ int main()
     const int kend    = ktot+gc;
     const int icells  = itot+2*gc;
     const int ijcells = (itot+2*gc)*(jtot+2*gc);
-    
+
     //
     // Prepare fields on HOST
     //
     double *a    = new double[ncells];
     double *at   = new double[ncells];
     double *tmp1 = new double[ncells];
-    
+
     for (int n=0; n<ncells; ++n)
     {
     	a [n]   = 0.001 * (std::rand() % 1000) - 0.5;
     	at[n]   = 0.;
     	tmp1[n] = 0.;
     }
-    
-    // 
+
+    //
     // Prepare fields on DEVICE
     //
     double *ad, *atd;
     cudaMalloc((void **)&ad,  ncells*sizeof(double));
     cudaMalloc((void **)&atd, ncells*sizeof(double));
-    
+
     cudaMemcpy(ad,  a,  ncells*sizeof(double), cudaMemcpyHostToDevice);
     cudaMemcpy(atd, at, ncells*sizeof(double), cudaMemcpyHostToDevice);
-    
+
     //
     // CUDA thread blocks
     //
@@ -305,7 +305,7 @@ int main()
     dim3 gridGPU2d(gridi, gridj, 1);
     dim3 blockGPU(blocki, blockj, 1);
 
-    // 
+    //
     // Timer stuff
     //
     cudaEvent_t startEvent, stopEvent;
@@ -318,7 +318,7 @@ int main()
     //
     //////////////////// CPU //////////////////////////
     cudaEventRecord(startEvent, 0);
-    for(int n=0; n<iter; ++n) 
+    for(int n=0; n<iter; ++n)
     {
        diff_cpu_3d(at,  a,  dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
     }
@@ -326,20 +326,20 @@ int main()
     cudaEventSynchronize(stopEvent);
     cudaEventElapsedTime(&dt1, startEvent, stopEvent);
     printf("CPU; elapsed=%f [ms]\n",dt1);
- 
+
     //////////////////// GPU //////////////////////////
     cudaDeviceSetSharedMemConfig(cudaSharedMemBankSizeEightByte);
 
     cudaEventRecord(startEvent, 0);
     for(int n=0; n<iter; ++n)
     {
-        diff_gpu_3d<<<gridGPU, blockGPU>>> 
+        diff_gpu_3d<<<gridGPU, blockGPU>>>
                  (atd, ad, dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icells, ijcells);
 
-        //diff_gpu_3d_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
+        //diff_gpu_3d_s2d<<<gridGPU, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>>
         //         (atd, ad, dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icells, ijcells, gc);
 
-        //diff_gpu_3d_s3d<<<gridGPU2d, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>> 
+        //diff_gpu_3d_s3d<<<gridGPU2d, blockGPU, (blocki+2*gc)*(blockj+2*gc)*sizeof(double)>>>
         //         (atd, ad, dxi, dyi, dzi, istart, iend, jstart, jend, kstart, kend, icells, ijcells, gc);
     }
     cudaEventRecord(stopEvent, 0);
@@ -347,7 +347,7 @@ int main()
     cudaEventElapsedTime(&dt2, startEvent, stopEvent);
 
     //
-    // Copy device field to tmp1 
+    // Copy device field to tmp1
     //
     cudaMemcpy(tmp1, atd, ncells*sizeof(double), cudaMemcpyDeviceToHost);
 
